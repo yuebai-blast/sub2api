@@ -2,13 +2,14 @@
 #
 # Sub2API Installation Script
 # Sub2API 安装脚本
-# Usage: curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | bash
+# 用法: curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | bash
 #
 
+# 任意命令失败立即退出，避免出错后继续执行造成损坏
 set -e
 
-# Bash 4+ is required for associative arrays used by the localized message table.
-# Keep this guard before any Bash 4-only syntax so older shells fail with a clear hint.
+# 本地化消息表使用关联数组，需要 Bash 4+ 支持。
+# 把这段版本检查放在所有 Bash 4 专有语法之前，让旧版 shell 能给出清晰提示而非报语法错误。
 if [ -z "${BASH_VERSION:-}" ]; then
     echo "Error: This installer must be run with Bash 4.0 or later." >&2
     echo "Please install Bash 4+ and run it with that interpreter." >&2
@@ -22,47 +23,47 @@ if [ "$BASH_MAJOR_VERSION" -lt 4 ]; then
     exit 1
 fi
 
-# Colors
+# 终端颜色控制码
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m' # 重置颜色
 
-# Configuration
-GITHUB_REPO="Wei-Shaw/sub2api"
-INSTALL_DIR="/opt/sub2api"
-SERVICE_NAME="sub2api"
-SERVICE_USER="sub2api"
-CONFIG_DIR="/etc/sub2api"
+# 基础配置
+GITHUB_REPO="Wei-Shaw/sub2api"   # GitHub 仓库（用于拉取 release）
+INSTALL_DIR="/opt/sub2api"        # 二进制及数据安装目录
+SERVICE_NAME="sub2api"            # systemd 服务名
+SERVICE_USER="sub2api"            # 运行服务的系统用户
+CONFIG_DIR="/etc/sub2api"         # 配置目录
 
-# Server configuration (will be set by user)
+# 服务器监听配置（可由用户在安装过程中修改）
 SERVER_HOST="0.0.0.0"
 SERVER_PORT="8080"
 
-# Language (default: zh = Chinese)
+# 界面语言（默认: zh = 中文）
 LANG_CHOICE="zh"
 
 # ============================================================
-# Language strings / 语言字符串
+# 多语言文案表 / 语言字符串
 # ============================================================
 
-# Chinese strings
+# 中文文案
 declare -A MSG_ZH=(
-    # General
+    # 通用
     ["info"]="信息"
     ["success"]="成功"
     ["warning"]="警告"
     ["error"]="错误"
 
-    # Language selection
+    # 语言选择
     ["select_lang"]="请选择语言 / Select language"
     ["lang_zh"]="中文"
     ["lang_en"]="English"
     ["enter_choice"]="请输入选择 (默认: 1)"
 
-    # Installation
+    # 安装流程
     ["install_title"]="Sub2API 安装脚本"
     ["run_as_root"]="请使用 root 权限运行 (使用 sudo)"
     ["detected_platform"]="检测到平台"
@@ -90,7 +91,7 @@ declare -A MSG_ZH=(
     ["service_installed"]="systemd 服务已安装"
     ["ready_for_setup"]="准备就绪，可以启动设置向导"
 
-    # Completion
+    # 安装完成提示
     ["install_complete"]="Sub2API 安装完成！"
     ["install_dir"]="安装目录"
     ["next_steps"]="后续步骤"
@@ -108,7 +109,7 @@ declare -A MSG_ZH=(
     ["cmd_restart"]="重启服务"
     ["cmd_stop"]="停止服务"
 
-    # Upgrade
+    # 升级
     ["upgrading"]="正在升级 Sub2API..."
     ["current_version"]="当前版本"
     ["stopping_service"]="正在停止服务..."
@@ -116,7 +117,7 @@ declare -A MSG_ZH=(
     ["starting_service"]="正在启动服务..."
     ["upgrade_complete"]="升级完成！"
 
-    # Version install
+    # 指定版本安装
     ["installing_version"]="正在安装指定版本"
     ["version_not_found"]="指定版本不存在"
     ["same_version"]="已经是该版本，无需操作"
@@ -128,7 +129,7 @@ declare -A MSG_ZH=(
     ["not_installed"]="Sub2API 尚未安装，请先执行全新安装"
     ["fresh_install_hint"]="用法"
 
-    # Uninstall
+    # 卸载
     ["uninstall_confirm"]="这将从系统中移除 Sub2API。"
     ["are_you_sure"]="确定要继续吗？(y/N)"
     ["uninstall_cancelled"]="卸载已取消"
@@ -143,7 +144,7 @@ declare -A MSG_ZH=(
     ["removing_config_dir"]="正在移除配置目录..."
     ["uninstall_complete"]="Sub2API 已卸载"
 
-    # Help
+    # 帮助信息
     ["usage"]="用法"
     ["cmd_none"]="(无参数)"
     ["cmd_install"]="安装 Sub2API"
@@ -153,7 +154,7 @@ declare -A MSG_ZH=(
     ["cmd_list_versions"]="列出可用版本"
     ["opt_version"]="指定要安装的版本号 (例如: v1.0.0)"
 
-    # Server configuration
+    # 服务器配置
     ["server_config_title"]="服务器配置"
     ["server_config_desc"]="配置 Sub2API 服务监听地址"
     ["server_host_prompt"]="服务器监听地址"
@@ -163,7 +164,7 @@ declare -A MSG_ZH=(
     ["server_config_summary"]="服务器配置"
     ["invalid_port"]="无效端口号，请输入 1-65535 之间的数字"
 
-    # Service management
+    # 服务管理
     ["starting_service"]="正在启动服务..."
     ["service_started"]="服务已启动"
     ["service_start_failed"]="服务启动失败，请检查日志"
@@ -173,21 +174,21 @@ declare -A MSG_ZH=(
     ["public_ip_failed"]="无法获取公网 IP，使用本地 IP"
 )
 
-# English strings
+# 英文文案
 declare -A MSG_EN=(
-    # General
+    # 通用
     ["info"]="INFO"
     ["success"]="SUCCESS"
     ["warning"]="WARNING"
     ["error"]="ERROR"
 
-    # Language selection
+    # 语言选择
     ["select_lang"]="请选择语言 / Select language"
     ["lang_zh"]="中文"
     ["lang_en"]="English"
     ["enter_choice"]="Enter your choice (default: 1)"
 
-    # Installation
+    # 安装流程
     ["install_title"]="Sub2API Installation Script"
     ["run_as_root"]="Please run as root (use sudo)"
     ["detected_platform"]="Detected platform"
@@ -215,7 +216,7 @@ declare -A MSG_EN=(
     ["service_installed"]="Systemd service installed"
     ["ready_for_setup"]="Ready for Setup Wizard"
 
-    # Completion
+    # 安装完成提示
     ["install_complete"]="Sub2API installation completed!"
     ["install_dir"]="Installation directory"
     ["next_steps"]="NEXT STEPS"
@@ -233,7 +234,7 @@ declare -A MSG_EN=(
     ["cmd_restart"]="Restart"
     ["cmd_stop"]="Stop"
 
-    # Upgrade
+    # 升级
     ["upgrading"]="Upgrading Sub2API..."
     ["current_version"]="Current version"
     ["stopping_service"]="Stopping service..."
@@ -241,7 +242,7 @@ declare -A MSG_EN=(
     ["starting_service"]="Starting service..."
     ["upgrade_complete"]="Upgrade completed!"
 
-    # Version install
+    # 指定版本安装
     ["installing_version"]="Installing specified version"
     ["version_not_found"]="Specified version not found"
     ["same_version"]="Already at this version, no action needed"
@@ -253,7 +254,7 @@ declare -A MSG_EN=(
     ["not_installed"]="Sub2API is not installed. Please run a fresh install first"
     ["fresh_install_hint"]="Usage"
 
-    # Uninstall
+    # 卸载
     ["uninstall_confirm"]="This will remove Sub2API from your system."
     ["are_you_sure"]="Are you sure? (y/N)"
     ["uninstall_cancelled"]="Uninstall cancelled"
@@ -268,7 +269,7 @@ declare -A MSG_EN=(
     ["removing_config_dir"]="Removing config directory..."
     ["uninstall_complete"]="Sub2API has been uninstalled"
 
-    # Help
+    # 帮助信息
     ["usage"]="Usage"
     ["cmd_none"]="(none)"
     ["cmd_install"]="Install Sub2API"
@@ -278,7 +279,7 @@ declare -A MSG_EN=(
     ["cmd_list_versions"]="List available versions"
     ["opt_version"]="Specify version to install (e.g., v1.0.0)"
 
-    # Server configuration
+    # 服务器配置
     ["server_config_title"]="Server Configuration"
     ["server_config_desc"]="Configure Sub2API server listen address"
     ["server_host_prompt"]="Server listen address"
@@ -288,7 +289,7 @@ declare -A MSG_EN=(
     ["server_config_summary"]="Server configuration"
     ["invalid_port"]="Invalid port number, please enter a number between 1-65535"
 
-    # Service management
+    # 服务管理
     ["starting_service"]="Starting service..."
     ["service_started"]="Service started"
     ["service_start_failed"]="Service failed to start, please check logs"
@@ -298,7 +299,7 @@ declare -A MSG_EN=(
     ["public_ip_failed"]="Failed to get public IP, using local IP"
 )
 
-# Get message based on current language
+# 根据当前语言获取对应文案
 msg() {
     local key="$1"
     if [ "$LANG_CHOICE" = "en" ]; then
@@ -308,7 +309,7 @@ msg() {
     fi
 }
 
-# Print functions
+# 带颜色与级别标签的日志输出函数
 print_info() {
     echo -e "${BLUE}[$(msg 'info')]${NC} $1"
 }
@@ -325,16 +326,16 @@ print_error() {
     echo -e "${RED}[$(msg 'error')]${NC} $1"
 }
 
-# Check if running interactively (can access terminal)
-# When piped (curl | bash), stdin is not a terminal, but /dev/tty may still be available
+# 判断是否处于交互模式（能否访问终端）
+# 通过管道运行（curl | bash）时，stdin 不是终端，但 /dev/tty 通常仍然可用
 is_interactive() {
-    # Check if /dev/tty is available (works even when piped)
+    # 检查 /dev/tty 是否可读写（即使通过管道运行也能工作）
     [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]
 }
 
-# Select language
+# 选择界面语言
 select_language() {
-    # If not interactive (piped), use default language
+    # 非交互模式（管道运行）时直接使用默认语言
     if ! is_interactive; then
         LANG_CHOICE="zh"
         return
@@ -363,7 +364,7 @@ select_language() {
     echo ""
 }
 
-# Validate port number
+# 校验端口号是否合法（1-65535 的纯数字）
 validate_port() {
     local port="$1"
     if [[ "$port" =~ ^[0-9]+$ ]] && [ "$port" -ge 1 ] && [ "$port" -le 65535 ]; then
@@ -372,9 +373,9 @@ validate_port() {
     return 1
 }
 
-# Configure server settings
+# 配置服务器监听地址与端口
 configure_server() {
-    # If not interactive (piped), use default settings
+    # 非交互模式（管道运行）时直接使用默认配置
     if ! is_interactive; then
         print_info "$(msg 'server_config_summary'): ${SERVER_HOST}:${SERVER_PORT} (default)"
         return
@@ -388,7 +389,7 @@ configure_server() {
     echo -e "${BLUE}$(msg 'server_config_desc')${NC}"
     echo ""
 
-    # Server host
+    # 监听地址
     echo -e "${YELLOW}$(msg 'server_host_hint')${NC}"
     read -p "$(msg 'server_host_prompt') [${SERVER_HOST}]: " input_host < /dev/tty
     if [ -n "$input_host" ]; then
@@ -397,12 +398,12 @@ configure_server() {
 
     echo ""
 
-    # Server port
+    # 监听端口（循环直到输入合法或采用默认值）
     echo -e "${YELLOW}$(msg 'server_port_hint')${NC}"
     while true; do
         read -p "$(msg 'server_port_prompt') [${SERVER_PORT}]: " input_port < /dev/tty
         if [ -z "$input_port" ]; then
-            # Use default
+            # 留空则使用默认端口
             break
         elif validate_port "$input_port"; then
             SERVER_PORT="$input_port"
@@ -417,17 +418,17 @@ configure_server() {
     echo ""
 }
 
-# Check if running as root
+# 检查是否以 root 权限运行
 check_root() {
-    # Use 'id -u' instead of $EUID for better compatibility
-    # $EUID may not work reliably when script is piped to bash
+    # 使用 'id -u' 而非 $EUID，兼容性更好
+    # 当脚本通过管道传给 bash 时，$EUID 可能不可靠
     if [ "$(id -u)" -ne 0 ]; then
         print_error "$(msg 'run_as_root')"
         exit 1
     fi
 }
 
-# Detect OS and architecture
+# 检测操作系统和 CPU 架构，归一化为 release 命名使用的标识
 detect_platform() {
     OS=$(uname -s | tr '[:upper:]' '[:lower:]')
     ARCH=$(uname -m)
@@ -461,7 +462,7 @@ detect_platform() {
     print_info "$(msg 'detected_platform'): ${OS}_${ARCH}"
 }
 
-# Check dependencies
+# 检查所需依赖命令是否存在（curl、tar）
 check_dependencies() {
     local missing=()
 
@@ -480,7 +481,7 @@ check_dependencies() {
     fi
 }
 
-# Get latest release version
+# 通过 GitHub API 获取最新 release 版本号
 get_latest_version() {
     print_info "$(msg 'fetching_version')"
     LATEST_VERSION=$(curl -s --connect-timeout 10 --max-time 30 "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -494,7 +495,7 @@ get_latest_version() {
     print_info "$(msg 'latest_version'): $LATEST_VERSION"
 }
 
-# List available versions
+# 列出可用版本（最近 20 个 release）
 list_versions() {
     print_info "$(msg 'fetching_versions')"
 
@@ -517,28 +518,28 @@ list_versions() {
     echo ""
 }
 
-# Validate if a version exists
+# 校验指定版本是否存在，并返回归一化后的版本号
 validate_version() {
     local version="$1"
 
-    # Check for empty version
+    # 版本号不能为空
     if [ -z "$version" ]; then
         print_error "$(msg 'opt_version')" >&2
         exit 1
     fi
 
-    # Ensure version starts with 'v'
+    # 确保版本号以 'v' 开头
     if [[ ! "$version" =~ ^v ]]; then
         version="v$version"
     fi
 
     print_info "$(msg 'validating_version') $version" >&2
 
-    # Check if the release exists
+    # 通过 GitHub API 检查该 release 是否存在（取 HTTP 状态码）
     local http_code
     http_code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time 30 "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${version}" 2>/dev/null)
 
-    # Check for network errors (empty or non-numeric response)
+    # 检查网络错误（响应为空或非数字）
     if [ -z "$http_code" ] || ! [[ "$http_code" =~ ^[0-9]+$ ]]; then
         print_error "Network error: Failed to connect to GitHub API" >&2
         exit 1
@@ -551,21 +552,21 @@ validate_version() {
         exit 1
     fi
 
-    # Return the normalized version (to stdout)
+    # 将归一化后的版本号输出到 stdout 供调用方使用
     echo "$version"
 }
 
-# Get current installed version
+# 获取当前已安装的版本号
 get_current_version() {
     if [ -f "$INSTALL_DIR/sub2api" ]; then
-        # Use grep -E for better compatibility (works on macOS and Linux)
+        # 使用 grep -E 提取版本号，兼容 macOS 和 Linux
         "$INSTALL_DIR/sub2api" --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown"
     else
         echo "not_installed"
     fi
 }
 
-# Download and extract
+# 下载并解压发行包，校验后安装二进制
 download_and_extract() {
     local version_num=${LATEST_VERSION#v}
     local archive_name="sub2api_${version_num}_${OS}_${ARCH}.tar.gz"
@@ -574,17 +575,17 @@ download_and_extract() {
 
     print_info "$(msg 'downloading') ${archive_name}..."
 
-    # Create temp directory
+    # 创建临时目录，并在脚本退出时自动清理
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
 
-    # Download archive
+    # 下载发行包
     if ! curl -sL "$download_url" -o "$TEMP_DIR/$archive_name"; then
         print_error "$(msg 'download_failed')"
         exit 1
     fi
 
-    # Download and verify checksum
+    # 下载校验文件并校验 sha256
     print_info "$(msg 'verifying_checksum')"
     if curl -sL "$checksum_url" -o "$TEMP_DIR/checksums.txt" 2>/dev/null; then
         local expected_checksum=$(grep "$archive_name" "$TEMP_DIR/checksums.txt" | awk '{print $1}')
@@ -601,18 +602,18 @@ download_and_extract() {
         print_warning "$(msg 'checksum_not_found')"
     fi
 
-    # Extract
+    # 解压
     print_info "$(msg 'extracting')"
     tar -xzf "$TEMP_DIR/$archive_name" -C "$TEMP_DIR"
 
-    # Create install directory
+    # 创建安装目录
     mkdir -p "$INSTALL_DIR"
 
-    # Copy binary
+    # 复制二进制并赋予可执行权限
     cp "$TEMP_DIR/sub2api" "$INSTALL_DIR/sub2api"
     chmod +x "$INSTALL_DIR/sub2api"
 
-    # Copy deploy files if they exist in the archive
+    # 如果发行包中包含 deploy 目录，一并复制过去
     if [ -d "$TEMP_DIR/deploy" ]; then
         cp -r "$TEMP_DIR/deploy/"* "$INSTALL_DIR/" 2>/dev/null || true
     fi
@@ -620,12 +621,12 @@ download_and_extract() {
     print_success "$(msg 'binary_installed') $INSTALL_DIR/sub2api"
 }
 
-# Create system user
+# 创建运行服务所需的系统用户
 create_user() {
     if id "$SERVICE_USER" &>/dev/null; then
         print_info "$(msg 'user_exists'): $SERVICE_USER"
-        # Fix: Ensure existing user has /bin/sh shell for sudo to work
-        # Previous versions used /bin/false which prevents sudo execution
+        # 修复：确保已存在的用户使用 /bin/sh，使 sudo 能正常工作
+        # 旧版本使用 /bin/false，会导致 sudo 无法执行
         local current_shell
         current_shell=$(getent passwd "$SERVICE_USER" 2>/dev/null | cut -d: -f7)
         if [ "$current_shell" = "/bin/false" ] || [ "$current_shell" = "/sbin/nologin" ]; then
@@ -639,34 +640,34 @@ create_user() {
         fi
     else
         print_info "$(msg 'creating_user') $SERVICE_USER..."
-        # Use /bin/sh instead of /bin/false to allow sudo execution
-        # The user still cannot login interactively (no password set)
+        # 使用 /bin/sh 而非 /bin/false，以允许 sudo 执行
+        # 该用户仍无法交互登录（未设置密码）
         useradd -r -s /bin/sh -d "$INSTALL_DIR" "$SERVICE_USER"
         print_success "$(msg 'user_created')"
     fi
 }
 
-# Setup directories and permissions
+# 设置目录及权限
 setup_directories() {
     print_info "$(msg 'setting_up_dirs')"
 
-    # Create directories
+    # 创建所需目录
     mkdir -p "$INSTALL_DIR"
     mkdir -p "$INSTALL_DIR/data"
     mkdir -p "$CONFIG_DIR"
 
-    # Set ownership
+    # 设置目录归属
     chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
     chown -R "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR"
 
     print_success "$(msg 'dirs_configured')"
 }
 
-# Install systemd service
+# 安装 systemd 服务
 install_service() {
     print_info "$(msg 'installing_service')"
 
-    # Create service file with configured host and port
+    # 使用配置好的监听地址和端口生成服务单元文件
     cat > /etc/systemd/system/sub2api.service << EOF
 [Unit]
 Description=Sub2API - AI API Gateway Platform
@@ -686,14 +687,14 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=sub2api
 
-# Security hardening
+# 安全加固
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
 ReadWritePaths=/opt/sub2api
 
-# Environment - Server configuration
+# 环境变量 - 服务器配置
 Environment=GIN_MODE=release
 Environment=SERVER_HOST=${SERVER_HOST}
 Environment=SERVER_PORT=${SERVER_PORT}
@@ -702,27 +703,27 @@ Environment=SERVER_PORT=${SERVER_PORT}
 WantedBy=multi-user.target
 EOF
 
-    # Reload systemd
+    # 重新加载 systemd 配置使新服务生效
     systemctl daemon-reload
 
     print_success "$(msg 'service_installed')"
 }
 
-# Prepare for setup wizard (no config file needed - setup wizard will create it)
+# 为设置向导做准备（无需生成配置文件，向导会自行创建）
 prepare_for_setup() {
     print_success "$(msg 'ready_for_setup')"
 }
 
-# Get public IP address
+# 获取公网 IP 地址
 get_public_ip() {
     print_info "$(msg 'getting_public_ip')"
 
-    # Try to get public IP from ipinfo.io
+    # 尝试从 ipinfo.io 获取公网 IP
     local response
     response=$(curl -s --connect-timeout 5 --max-time 10 "https://ipinfo.io/json" 2>/dev/null)
 
     if [ -n "$response" ]; then
-        # Extract IP from JSON response using grep and sed (no jq dependency)
+        # 用 grep 和 sed 从 JSON 响应中提取 IP（无需依赖 jq）
         PUBLIC_IP=$(echo "$response" | grep -o '"ip": *"[^"]*"' | sed 's/"ip": *"\([^"]*\)"/\1/')
         if [ -n "$PUBLIC_IP" ]; then
             print_success "Public IP: $PUBLIC_IP"
@@ -730,13 +731,13 @@ get_public_ip() {
         fi
     fi
 
-    # Fallback to local IP
+    # 获取失败时回退到本机内网 IP
     print_warning "$(msg 'public_ip_failed')"
     PUBLIC_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "YOUR_SERVER_IP")
     return 1
 }
 
-# Start service
+# 启动服务
 start_service() {
     print_info "$(msg 'starting_service')"
 
@@ -750,7 +751,7 @@ start_service() {
     fi
 }
 
-# Enable service auto-start
+# 设置服务开机自启
 enable_autostart() {
     print_info "$(msg 'enabling_autostart')"
 
@@ -763,10 +764,10 @@ enable_autostart() {
     fi
 }
 
-# Print completion message
+# 打印安装完成信息
 print_completion() {
-    # Use PUBLIC_IP which was set by get_public_ip()
-    # Determine display address
+    # 使用 get_public_ip() 设置的 PUBLIC_IP
+    # 确定用于展示的访问地址
     local display_host="${PUBLIC_IP:-YOUR_SERVER_IP}"
     if [ "$SERVER_HOST" = "127.0.0.1" ]; then
         display_host="127.0.0.1"
@@ -803,9 +804,9 @@ print_completion() {
     echo "=============================================="
 }
 
-# Upgrade function
+# 升级到最新版本
 upgrade() {
-    # Check if Sub2API is installed
+    # 检查 Sub2API 是否已安装
     if [ ! -f "$INSTALL_DIR/sub2api" ]; then
         print_error "$(msg 'not_installed')"
         print_info "$(msg 'fresh_install_hint'): $0 install"
@@ -814,69 +815,69 @@ upgrade() {
 
     print_info "$(msg 'upgrading')"
 
-    # Get current version
+    # 获取当前版本
     CURRENT_VERSION=$("$INSTALL_DIR/sub2api" --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
     print_info "$(msg 'current_version'): $CURRENT_VERSION"
 
-    # Stop service
+    # 停止服务
     if systemctl is-active --quiet sub2api; then
         print_info "$(msg 'stopping_service')"
         systemctl stop sub2api
     fi
 
-    # Backup current binary
+    # 备份当前二进制
     cp "$INSTALL_DIR/sub2api" "$INSTALL_DIR/sub2api.backup"
     print_info "$(msg 'backup_created'): $INSTALL_DIR/sub2api.backup"
 
-    # Download and install new version
+    # 下载并安装新版本
     get_latest_version
     download_and_extract
 
-    # Set permissions
+    # 设置权限
     chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/sub2api"
 
-    # Start service
+    # 启动服务
     print_info "$(msg 'starting_service')"
     systemctl start sub2api
 
     print_success "$(msg 'upgrade_complete')"
 }
 
-# Install specific version (for upgrade or rollback)
-# Requires: Sub2API must already be installed
+# 安装指定版本（用于升级或回退）
+# 前提：Sub2API 必须已经安装
 install_version() {
     local target_version="$1"
 
-    # Check if Sub2API is installed
+    # 检查 Sub2API 是否已安装
     if [ ! -f "$INSTALL_DIR/sub2api" ]; then
         print_error "$(msg 'not_installed')"
         print_info "$(msg 'fresh_install_hint'): $0 install -v $target_version"
         exit 1
     fi
 
-    # Validate and normalize version
+    # 校验并归一化版本号
     target_version=$(validate_version "$target_version")
 
     print_info "$(msg 'installing_version'): $target_version"
 
-    # Get current version
+    # 获取当前版本
     local current_version
     current_version=$(get_current_version)
     print_info "$(msg 'current_version'): $current_version"
 
-    # Check if same version
+    # 若目标版本与当前版本相同则无需操作
     if [ "$current_version" = "$target_version" ] || [ "$current_version" = "${target_version#v}" ]; then
         print_warning "$(msg 'same_version')"
         exit 0
     fi
 
-    # Stop service if running
+    # 如服务正在运行则先停止
     if systemctl is-active --quiet sub2api; then
         print_info "$(msg 'stopping_service')"
         systemctl stop sub2api
     fi
 
-    # Backup current binary (for potential recovery)
+    # 备份当前二进制（便于异常时恢复）
     if [ -f "$INSTALL_DIR/sub2api" ]; then
         local backup_name
         if [ "$current_version" != "unknown" ] && [ "$current_version" != "not_installed" ]; then
@@ -888,16 +889,16 @@ install_version() {
         print_info "$(msg 'backup_created'): $INSTALL_DIR/$backup_name"
     fi
 
-    # Set LATEST_VERSION to the target version for download_and_extract
+    # 将 LATEST_VERSION 设为目标版本，供 download_and_extract 使用
     LATEST_VERSION="$target_version"
 
-    # Download and install
+    # 下载并安装
     download_and_extract
 
-    # Set permissions
+    # 设置权限
     chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/sub2api"
 
-    # Start service
+    # 启动服务
     print_info "$(msg 'starting_service')"
     if systemctl start sub2api; then
         print_success "$(msg 'service_started')"
@@ -906,7 +907,7 @@ install_version() {
         print_info "sudo journalctl -u sub2api -n 50"
     fi
 
-    # Print completion message
+    # 打印完成信息
     local new_version
     new_version=$(get_current_version)
     echo ""
@@ -918,11 +919,11 @@ install_version() {
     echo ""
 }
 
-# Uninstall function
+# 卸载 Sub2API
 uninstall() {
     print_warning "$(msg 'uninstall_confirm')"
 
-    # If not interactive (piped), require -y flag or skip confirmation
+    # 非交互模式（管道运行）下必须带 -y 参数才能确认卸载
     if ! is_interactive; then
         if [ "${FORCE_YES:-}" != "true" ]; then
             print_error "Non-interactive mode detected. Use 'curl ... | bash -s -- uninstall -y' to confirm."
@@ -951,13 +952,13 @@ uninstall() {
     print_info "$(msg 'removing_user')"
     userdel "$SERVICE_USER" 2>/dev/null || true
 
-    # Remove install lock file (.installed) to allow fresh setup on reinstall
+    # 删除安装锁文件(.installed)，使重新安装时能再次进入设置向导
     print_info "$(msg 'removing_install_lock')"
     rm -f "$CONFIG_DIR/.installed" 2>/dev/null || true
     rm -f "$INSTALL_DIR/.installed" 2>/dev/null || true
     print_success "$(msg 'install_lock_removed')"
 
-    # Ask about config directory removal (interactive mode only)
+    # 询问是否删除配置目录（仅交互模式下询问）
     local remove_config=false
     if [ "${PURGE:-}" = "true" ]; then
         remove_config=true
@@ -980,9 +981,9 @@ uninstall() {
     print_success "$(msg 'uninstall_complete')"
 }
 
-# Main
+# 主入口
 main() {
-    # Parse flags first
+    # 先解析可选参数（flag）
     local target_version=""
     local positional_args=()
 
@@ -1020,10 +1021,10 @@ main() {
         esac
     done
 
-    # Restore positional arguments
+    # 还原位置参数（命令名等）
     set -- "${positional_args[@]}"
 
-    # Select language first
+    # 先选择界面语言
     select_language
 
     echo ""
@@ -1032,33 +1033,33 @@ main() {
     echo "=============================================="
     echo ""
 
-    # Parse commands
+    # 解析子命令
     case "${1:-}" in
         upgrade|update)
             check_root
             detect_platform
             check_dependencies
             if [ -n "$target_version" ]; then
-                # Upgrade to specific version
+                # 升级到指定版本
                 install_version "$target_version"
             else
-                # Upgrade to latest
+                # 升级到最新版本
                 upgrade
             fi
             exit 0
             ;;
         install)
-            # Install with optional version
+            # 安装（可附带指定版本）
             check_root
             detect_platform
             check_dependencies
             if [ -n "$target_version" ]; then
-                # Install specific version (fresh install or rollback)
+                # 安装指定版本（全新安装或回退）
                 if [ -f "$INSTALL_DIR/sub2api" ]; then
-                    # Already installed, treat as version change
+                    # 已安装则视为版本切换
                     install_version "$target_version"
                 else
-                    # Fresh install with specific version
+                    # 全新安装指定版本
                     configure_server
                     LATEST_VERSION=$(validate_version "$target_version")
                     download_and_extract
@@ -1072,7 +1073,7 @@ main() {
                     print_completion
                 fi
             else
-                # Fresh install with latest version
+                # 全新安装最新版本
                 configure_server
                 get_latest_version
                 download_and_extract
@@ -1088,7 +1089,7 @@ main() {
             exit 0
             ;;
         rollback)
-            # Rollback to a specific version (alias for install with version)
+            # 回退到指定版本（等价于带版本号的 install）
             if [ -z "$target_version" ] && [ -n "${2:-}" ]; then
                 target_version="$2"
             fi
@@ -1143,13 +1144,13 @@ main() {
             ;;
     esac
 
-    # Default: Fresh install with latest version
+    # 默认行为：全新安装最新版本
     check_root
     detect_platform
     check_dependencies
 
     if [ -n "$target_version" ]; then
-        # Install specific version
+        # 安装指定版本
         if [ -f "$INSTALL_DIR/sub2api" ]; then
             install_version "$target_version"
         else
@@ -1166,7 +1167,7 @@ main() {
             print_completion
         fi
     else
-        # Install latest version
+        # 安装最新版本
         configure_server
         get_latest_version
         download_and_extract
