@@ -18,7 +18,11 @@ var ccVersionInBillingRe = regexp.MustCompile(`cc_version=\d+\.\d+\.\d+`)
 // scoped to x-anthropic-billing-header to avoid touching user content.
 var cchPlaceholderRe = regexp.MustCompile(`(x-anthropic-billing-header:[^"]*?\bcch=)(00000)(;)`)
 
-const cchSeed uint64 = 0x6E52736AC806831E
+// cchSignedRe 与 cchPlaceholderRe 结构一致，但匹配的是已签名的真实 cch（5 位十六进制），
+// 而非占位符 00000。用于从抓取到的真实请求里提取/还原 cch。
+var cchSignedRe = regexp.MustCompile(`(x-anthropic-billing-header:[^"]*?\bcch=)([0-9a-f]{5})(;)`)
+
+const cchSeed uint64 = 0x4D659218E32A3268
 
 // syncBillingHeaderVersion rewrites cc_version in x-anthropic-billing-header
 // system text blocks to match the version extracted from userAgent.
