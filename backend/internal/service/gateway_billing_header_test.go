@@ -1,7 +1,10 @@
 package service
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/cespare/xxhash/v2"
@@ -162,4 +165,34 @@ func TestXXHash64Seeded(t *testing.T) {
 		h2 := xxHash64Seeded(data, cchSeed)
 		assert.NotEqual(t, h1, h2)
 	})
+}
+
+func TestCchSeedIsCorrect(t *testing.T) {
+	// 测试运行时工作目录是包目录 backend/internal/service，testdata 在 backend 下，故 ../../。
+	raw, err := os.ReadFile("../../testdata/original_cc_request.json")
+	require.NoError(t, err)
+
+	// json.Compact 同时完成两件事：
+	//   1) 校验是否为合法 JSON（非法会返回 error）
+	//   2) 转成紧凑版（剥掉所有缩进/空白）
+	var buf bytes.Buffer
+	require.NoError(t, json.Compact(&buf, raw), "original_cc_request 不是合法 JSON")
+	body := buf.Bytes()
+
+	t.Logf("original body: %s", body)
+	// 1) 从 JSON 中找出客户端已签好的真实 cch
+	m := cchSignedRe.FindSubmatch(body)
+	require.NotNil(t, m, "未在 billing header 中找到 cch")
+	fileCCH := string(m[2])
+	t.Logf("file cch is %s", fileCCH)
+
+	// 2) 还原成签名前的占位符形态（cch=00000）——哈希正是在这个形态上计算的
+	placeholderBody := cchSignedRe.ReplaceAll(body, []byte("${1}00000${3}"))
+	t.Logf("placeholder body: %s", placeholderBody)
+
+	// 3) 用我们的 seed 重新计算，应与客户端真实 cch 一致（一致即说明 cchSeed 正确）
+	computedCCH := fmt.Sprintf("%05x", xxHash64Seeded(placeholderBody, cchSeed)&0xFFFFF)
+	t.Logf("computed CCH is %s", computedCCH)
+
+	assert.Equal(t, fileCCH, computedCCH)
 }
