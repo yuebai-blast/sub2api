@@ -14,12 +14,9 @@ import (
 // the trailing message-derived suffix (e.g. ".c02") if present.
 var ccVersionInBillingRe = regexp.MustCompile(`cc_version=\d+\.\d+\.\d+`)
 
-// cchPlaceholderRe matches the cch=00000 placeholder in billing header text,
-// scoped to x-anthropic-billing-header to avoid touching user content.
-var cchPlaceholderRe = regexp.MustCompile(`(x-anthropic-billing-header:[^"]*?\bcch=)(00000)(;)`)
-
-// cchSignedRe 与 cchPlaceholderRe 结构一致，但匹配的是已签名的真实 cch（5 位十六进制），
-// 而非占位符 00000。用于从抓取到的真实请求里提取/还原 cch。
+// cchSignedRe 匹配 billing header 文本中 5 位十六进制的 cch 字段（涵盖未签名的占位符
+// 00000 与已签名的真实值），限定在 x-anthropic-billing-header 范围内以免误伤用户内容。
+// 用于签名时归一化/替换 cch，以及从抓取到的真实请求里提取/还原 cch。
 var cchSignedRe = regexp.MustCompile(`(x-anthropic-billing-header:[^"]*?\bcch=)([0-9a-f]{5})(;)`)
 
 const cchSeed uint64 = 0x4D659218E32A3268
@@ -58,15 +55,17 @@ func syncBillingHeaderVersion(body []byte, userAgent string) []byte {
 	return body
 }
 
-// signBillingHeaderCCH computes the xxHash64-based CCH signature for the request
-// body and replaces the cch=00000 placeholder with the computed 5-hex-char hash.
-// The body must contain the placeholder when this function is called.
+// signBillingHeaderCCH 计算请求 body 的 xxHash64 CCH 签名，并写回 billing header 的 cch 字段。
+// 它会先把已有 cch（未签名的占位符 00000，或此前已签名的真实值）统一归一化为 00000，
+// 在该占位形态上计算哈希（Anthropic 侧校验时同样对占位形态求哈希），再用计算结果替换回去。
+// 若 body 不含 billing header 的 cch 字段，则原样返回。
 func signBillingHeaderCCH(body []byte) []byte {
-	if !cchPlaceholderRe.Match(body) {
+	if !cchSignedRe.Match(body) {
 		return body
 	}
-	cch := fmt.Sprintf("%05x", xxHash64Seeded(body, cchSeed)&0xFFFFF)
-	return cchPlaceholderRe.ReplaceAll(body, []byte("${1}"+cch+"${3}"))
+	placeholderBody := cchSignedRe.ReplaceAll(body, []byte("${1}00000${3}"))
+	cch := fmt.Sprintf("%05x", xxHash64Seeded(placeholderBody, cchSeed)&0xFFFFF)
+	return cchSignedRe.ReplaceAll(placeholderBody, []byte("${1}"+cch+"${3}"))
 }
 
 // xxHash64Seeded computes xxHash64 of data with a custom seed.

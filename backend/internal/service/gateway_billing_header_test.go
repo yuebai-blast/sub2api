@@ -87,10 +87,10 @@ func TestSignBillingHeaderCCH(t *testing.T) {
 		assert.Regexp(t, `cch=[0-9a-f]{5};`, billingText)
 	})
 
-	t.Run("no placeholder - body unchanged", func(t *testing.T) {
+	t.Run("replaces actual cch with hash", func(t *testing.T) {
 		body := []byte(`{"system":[{"type":"text","text":"x-anthropic-billing-header: cc_version=2.1.63; cc_entrypoint=cli; cch=abcde;"}],"messages":[]}`)
 		result := signBillingHeaderCCH(body)
-		assert.Equal(t, string(body), string(result))
+		assert.NotEqual(t, string(body), string(result))
 	})
 
 	t.Run("no billing header - body unchanged", func(t *testing.T) {
