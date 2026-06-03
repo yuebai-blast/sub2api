@@ -20,7 +20,7 @@ This directory contains files for deploying Sub2API on Linux servers.
 | `DOCKER.md` | Docker Hub documentation |
 | `install.sh` | One-click binary installation script |
 | `install-datamanagementd.sh` | datamanagementd 一键安装脚本 |
-| `sub2api.service` | Systemd service unit file |
+| `mint_sub2api.service` | Systemd service unit file |
 | `sub2api-datamanagementd.service` | datamanagementd systemd service unit file |
 | `DATAMANAGEMENTD_CN.md` | datamanagementd 部署与联动说明（中文） |
 | `config.example.yaml` | Example configuration file |
@@ -35,10 +35,10 @@ Use the automated preparation script for the easiest setup:
 
 ```bash
 # Download and run the preparation script
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh | bash
+curl -sSL https://raw.githubusercontent.com/yuebai-blast/sub2api/main/deploy/docker-deploy.sh | bash
 
 # Or download first, then run
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh -o docker-deploy.sh
+curl -sSL https://raw.githubusercontent.com/yuebai-blast/sub2api/main/deploy/docker-deploy.sh -o docker-deploy.sh
 chmod +x docker-deploy.sh
 ./docker-deploy.sh
 ```
@@ -71,7 +71,7 @@ If you prefer manual control:
 
 ```bash
 # Clone repository
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone https://github.com/yuebai-blast/sub2api.git
 cd sub2api/deploy
 
 # Configure environment
@@ -353,19 +353,19 @@ For production servers using systemd.
 ### One-Line Installation
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/yuebai-blast/sub2api/main/deploy/install.sh | sudo bash
 ```
 
 ### Manual Installation
 
-1. Download the latest release from [GitHub Releases](https://github.com/Wei-Shaw/sub2api/releases)
-2. Extract and copy the binary to `/opt/sub2api/`
-3. Copy `sub2api.service` to `/etc/systemd/system/`
+1. Download the latest release from [GitHub Releases](https://github.com/yuebai-blast/sub2api/releases)
+2. Extract and copy the binary to `/opt/mint_sub2api/`
+3. Copy `mint_sub2api.service` to `/etc/systemd/system/`
 4. Run:
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl enable sub2api
-   sudo systemctl start sub2api
+   sudo systemctl enable mint_sub2api
+   sudo systemctl start mint_sub2api
    ```
 5. Open the Setup Wizard in your browser to complete configuration
 
@@ -386,22 +386,22 @@ sudo ./install.sh uninstall
 
 ```bash
 # Start the service
-sudo systemctl start sub2api
+sudo systemctl start mint_sub2api
 
 # Stop the service
-sudo systemctl stop sub2api
+sudo systemctl stop mint_sub2api
 
 # Restart the service
-sudo systemctl restart sub2api
+sudo systemctl restart mint_sub2api
 
 # Check status
-sudo systemctl status sub2api
+sudo systemctl status mint_sub2api
 
 # View logs
-sudo journalctl -u sub2api -f
+sudo journalctl -u mint_sub2api -f
 
 # Enable auto-start on boot
-sudo systemctl enable sub2api
+sudo systemctl enable mint_sub2api
 ```
 
 ### Configuration
@@ -414,7 +414,7 @@ To change after installation:
 
 1. Edit the systemd service:
    ```bash
-   sudo systemctl edit sub2api
+   sudo systemctl edit mint_sub2api
    ```
 
 2. Add or modify:
@@ -427,7 +427,7 @@ To change after installation:
 3. Reload and restart:
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl restart sub2api
+   sudo systemctl restart mint_sub2api
    ```
 
 #### Gemini OAuth Configuration
@@ -436,7 +436,7 @@ If you need to use AI Studio OAuth for Gemini accounts, add the OAuth client cre
 
 1. Edit the service file:
    ```bash
-   sudo nano /etc/systemd/system/sub2api.service
+   sudo nano /etc/systemd/system/mint_sub2api.service
    ```
 
 2. Add your OAuth credentials in the `[Service]` section (after the existing `Environment=` lines):
@@ -453,7 +453,7 @@ If you need to use AI Studio OAuth for Gemini accounts, add the OAuth client cre
 3. Reload and restart:
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl restart sub2api
+   sudo systemctl restart mint_sub2api
    ```
 
 > **Note:** Code Assist OAuth does not require any configuration - it uses the built-in Gemini CLI client.
@@ -473,7 +473,7 @@ The main config file is at `/etc/sub2api/config.yaml` (created by Setup Wizard).
 ### Directory Structure
 
 ```
-/opt/sub2api/
+/opt/mint_sub2api/
 ├── sub2api              # Main binary
 ├── sub2api.backup       # Backup (after upgrade)
 └── data/                # Runtime data
@@ -533,10 +533,10 @@ docker compose restart
 
 ```bash
 # Check service status
-sudo systemctl status sub2api
+sudo systemctl status mint_sub2api
 
 # View recent logs
-sudo journalctl -u sub2api -n 50
+sudo journalctl -u mint_sub2api -n 50
 
 # Check config file
 sudo cat /etc/sub2api/config.yaml

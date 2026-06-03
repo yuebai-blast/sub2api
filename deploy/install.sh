@@ -2,7 +2,7 @@
 #
 # Sub2API Installation Script
 # Sub2API 安装脚本
-# 用法: curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | bash
+# 用法: curl -sSL https://raw.githubusercontent.com/yuebai-blast/sub2api/main/deploy/install.sh | bash
 #
 
 # 任意命令失败立即退出，避免出错后继续执行造成损坏
@@ -32,15 +32,15 @@ CYAN='\033[0;36m'
 NC='\033[0m' # 重置颜色
 
 # 基础配置
-GITHUB_REPO="Wei-Shaw/sub2api"   # GitHub 仓库（用于拉取 release）
-INSTALL_DIR="/opt/sub2api"        # 二进制及数据安装目录
-SERVICE_NAME="sub2api"            # systemd 服务名
-SERVICE_USER="sub2api"            # 运行服务的系统用户
-CONFIG_DIR="/etc/sub2api"         # 配置目录
+GITHUB_REPO="yuebai-blast/sub2api"   # GitHub 仓库（用于拉取 release）
+INSTALL_DIR="/opt/mint_sub2api"        # 二进制及数据安装目录
+SERVICE_NAME="mint_sub2api"            # systemd 服务名
+SERVICE_USER="mint_sub2api"            # 运行服务的系统用户
+CONFIG_DIR="/etc/mint_sub2api"         # 配置目录
 
 # 服务器监听配置（可由用户在安装过程中修改）
 SERVER_HOST="0.0.0.0"
-SERVER_PORT="8080"
+SERVER_PORT="9000"
 
 # 界面语言（默认: zh = 中文）
 LANG_CHOICE="zh"
@@ -668,31 +668,32 @@ install_service() {
     print_info "$(msg 'installing_service')"
 
     # 使用配置好的监听地址和端口生成服务单元文件
-    cat > /etc/systemd/system/sub2api.service << EOF
+    # 注意：以下全部引用顶部变量，避免与服务器上原版 sub2api 的服务单元冲突
+    cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
-Description=Sub2API - AI API Gateway Platform
-Documentation=https://github.com/Wei-Shaw/sub2api
+Description=Sub2API (mint) - AI API Gateway Platform
+Documentation=https://github.com/yuebai-blast/sub2api
 After=network.target postgresql.service redis.service
 Wants=postgresql.service redis.service
 
 [Service]
 Type=simple
-User=sub2api
-Group=sub2api
-WorkingDirectory=/opt/sub2api
-ExecStart=/opt/sub2api/sub2api
+User=${SERVICE_USER}
+Group=${SERVICE_USER}
+WorkingDirectory=${INSTALL_DIR}
+ExecStart=${INSTALL_DIR}/sub2api
 Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=sub2api
+SyslogIdentifier=${SERVICE_NAME}
 
 # 安全加固
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/opt/sub2api
+ReadWritePaths=${INSTALL_DIR}
 
 # 环境变量 - 服务器配置
 Environment=GIN_MODE=release
@@ -741,12 +742,12 @@ get_public_ip() {
 start_service() {
     print_info "$(msg 'starting_service')"
 
-    if systemctl start sub2api; then
+    if systemctl start "${SERVICE_NAME}"; then
         print_success "$(msg 'service_started')"
         return 0
     else
         print_error "$(msg 'service_start_failed')"
-        print_info "sudo journalctl -u sub2api -n 50"
+        print_info "sudo journalctl -u ${SERVICE_NAME} -n 50"
         return 1
     fi
 }
@@ -755,7 +756,7 @@ start_service() {
 enable_autostart() {
     print_info "$(msg 'enabling_autostart')"
 
-    if systemctl enable sub2api 2>/dev/null; then
+    if systemctl enable "${SERVICE_NAME}" 2>/dev/null; then
         print_success "$(msg 'autostart_enabled')"
         return 0
     else
@@ -796,10 +797,10 @@ print_completion() {
     echo "  $(msg 'useful_commands')"
     echo "=============================================="
     echo ""
-    echo "  $(msg 'cmd_status'):   sudo systemctl status sub2api"
-    echo "  $(msg 'cmd_logs'):     sudo journalctl -u sub2api -f"
-    echo "  $(msg 'cmd_restart'):  sudo systemctl restart sub2api"
-    echo "  $(msg 'cmd_stop'):     sudo systemctl stop sub2api"
+    echo "  $(msg 'cmd_status'):   sudo systemctl status ${SERVICE_NAME}"
+    echo "  $(msg 'cmd_logs'):     sudo journalctl -u ${SERVICE_NAME} -f"
+    echo "  $(msg 'cmd_restart'):  sudo systemctl restart ${SERVICE_NAME}"
+    echo "  $(msg 'cmd_stop'):     sudo systemctl stop ${SERVICE_NAME}"
     echo ""
     echo "=============================================="
 }
@@ -820,9 +821,9 @@ upgrade() {
     print_info "$(msg 'current_version'): $CURRENT_VERSION"
 
     # 停止服务
-    if systemctl is-active --quiet sub2api; then
+    if systemctl is-active --quiet "${SERVICE_NAME}"; then
         print_info "$(msg 'stopping_service')"
-        systemctl stop sub2api
+        systemctl stop "${SERVICE_NAME}"
     fi
 
     # 备份当前二进制
@@ -838,7 +839,7 @@ upgrade() {
 
     # 启动服务
     print_info "$(msg 'starting_service')"
-    systemctl start sub2api
+    systemctl start "${SERVICE_NAME}"
 
     print_success "$(msg 'upgrade_complete')"
 }
@@ -872,9 +873,9 @@ install_version() {
     fi
 
     # 如服务正在运行则先停止
-    if systemctl is-active --quiet sub2api; then
+    if systemctl is-active --quiet "${SERVICE_NAME}"; then
         print_info "$(msg 'stopping_service')"
-        systemctl stop sub2api
+        systemctl stop "${SERVICE_NAME}"
     fi
 
     # 备份当前二进制（便于异常时恢复）
@@ -900,11 +901,11 @@ install_version() {
 
     # 启动服务
     print_info "$(msg 'starting_service')"
-    if systemctl start sub2api; then
+    if systemctl start "${SERVICE_NAME}"; then
         print_success "$(msg 'service_started')"
     else
         print_error "$(msg 'service_start_failed')"
-        print_info "sudo journalctl -u sub2api -n 50"
+        print_info "sudo journalctl -u ${SERVICE_NAME} -n 50"
     fi
 
     # 打印完成信息
@@ -939,11 +940,11 @@ uninstall() {
     fi
 
     print_info "$(msg 'stopping_service')"
-    systemctl stop sub2api 2>/dev/null || true
-    systemctl disable sub2api 2>/dev/null || true
+    systemctl stop "${SERVICE_NAME}" 2>/dev/null || true
+    systemctl disable "${SERVICE_NAME}" 2>/dev/null || true
 
     print_info "$(msg 'removing_files')"
-    rm -f /etc/systemd/system/sub2api.service
+    rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
     systemctl daemon-reload
 
     print_info "$(msg 'removing_install_dir')"
