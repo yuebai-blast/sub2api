@@ -9,7 +9,7 @@ import (
 // Go 的 HTTP server 解析请求时会将所有 header key 转为 Canonical 形式（如 x-app → X-App），
 // 此 map 用于在转发时恢复到真实的 wire format。
 //
-// 来源：对真实 Claude CLI (claude-cli/2.1.81) 到 api.anthropic.com 的 HTTPS 流量抓包。
+// 来源：对真实 Claude CLI (claude-cli/2.1.162) 到 api.anthropic.com 的 HTTPS 流量抓包。
 var headerWireCasing = map[string]string{
 	// Title case
 	"accept":     "Accept",
@@ -31,16 +31,16 @@ var headerWireCasing = map[string]string{
 	"anthropic-version":                         "anthropic-version",
 	"anthropic-beta":                            "anthropic-beta",
 	"x-app":                                     "x-app",
-	"content-type":                              "content-type",
+	"content-type":                              "Content-Type",
 	"accept-language":                           "accept-language",
 	"sec-fetch-mode":                            "sec-fetch-mode",
-	"accept-encoding":                           "accept-encoding",
-	"authorization":                             "authorization",
+	"accept-encoding":                           "Accept-Encoding",
+	"authorization":                             "Authorization",
 
 	// Claude Code 2.1.87+ 新增 header
 	"x-claude-code-session-id": "X-Claude-Code-Session-Id",
 	"x-client-request-id":      "x-client-request-id",
-	"content-length":           "content-length",
+	"content-length":           "Content-Length",
 }
 
 // headerWireOrder 定义真实 Claude CLI 发送 header 的顺序（基于抓包）。
