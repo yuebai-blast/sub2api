@@ -6454,33 +6454,11 @@ func (s *GatewayService) getBetaHeader(modelID string, clientBetaHeader string) 
 		if strings.Contains(clientBetaHeader, claude.BetaOAuth) {
 			return clientBetaHeader
 		}
-
-		// 需要添加oauth beta
-		parts := strings.Split(clientBetaHeader, ",")
-		for i, p := range parts {
-			parts[i] = strings.TrimSpace(p)
-		}
-
-		// 在claude-code-20250219后面插入oauth beta
-		claudeCodeIdx := -1
-		for i, p := range parts {
-			if p == claude.BetaClaudeCode {
-				claudeCodeIdx = i
-				break
-			}
-		}
-
-		if claudeCodeIdx >= 0 {
-			// 在claude-code后面插入
-			newParts := make([]string, 0, len(parts)+1)
-			newParts = append(newParts, parts[:claudeCodeIdx+1]...)
-			newParts = append(newParts, claude.BetaOAuth)
-			newParts = append(newParts, parts[claudeCodeIdx+1:]...)
-			return strings.Join(newParts, ",")
-		}
-
-		// 没有claude-code，放在第一位
-		return claude.BetaOAuth + "," + clientBetaHeader
+		clientBetaHeader = addBetaTokenAfter(clientBetaHeader, claude.BetaOAuth, claude.BetaClaudeCode)
+		clientBetaHeader = addBetaTokenAfter(clientBetaHeader, claude.BetaThinkingTokenCount, claude.BetaRedactThinking)
+		clientBetaHeader = addBetaTokenAfter(clientBetaHeader, claude.BetaAdvisorTool, claude.BetaMidConversationSystem)
+		clientBetaHeader = addBetaTokenAfter(clientBetaHeader, claude.BetaEffort, claude.BetaExtendedCacheTTL)
+		return clientBetaHeader
 	}
 
 	// 客户端没传，根据模型生成
@@ -6490,6 +6468,32 @@ func (s *GatewayService) getBetaHeader(modelID string, clientBetaHeader string) 
 	}
 
 	return claude.DefaultBetaHeader
+}
+
+func addBetaTokenAfter(clientBetaHeader string, tokenToAdd string, afterToken string) string {
+	if strings.Contains(clientBetaHeader, tokenToAdd) {
+		return clientBetaHeader
+	}
+	parts := strings.Split(clientBetaHeader, ",")
+	for i, p := range parts {
+		parts[i] = strings.TrimSpace(p)
+	}
+	afterTokenIdx := -1
+	for i, p := range parts {
+		if p == afterToken {
+			afterTokenIdx = i
+			break
+		}
+	}
+	if afterTokenIdx < 0 {
+		// 没有找到 afterToken
+		return clientBetaHeader
+	}
+	newParts := make([]string, 0, len(parts)+1)
+	newParts = append(newParts, parts[:afterTokenIdx+1]...)
+	newParts = append(newParts, tokenToAdd)
+	newParts = append(newParts, parts[afterTokenIdx+1:]...)
+	return strings.Join(newParts, ",")
 }
 
 func requestNeedsBetaFeatures(body []byte) bool {
