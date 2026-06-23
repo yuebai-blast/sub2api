@@ -1,0 +1,86 @@
+# 工具链与命令单一来源（统一通过 mise 管理）
+[tools]
+go = "1.26.4"               # 与 backend/go.mod 对齐
+node = "20.18.1"            # 固定具体版本
+pnpm = "9.15.9"
+golangci-lint = "2.9.0"
+
+# ---------- 依赖安装 ----------
+[tasks.install]
+description = "安装全部组件依赖（backend + frontend + user-portal）"
+depends = ["install-backend", "install-frontend", "install-user-portal"]
+
+[tasks.install-backend]
+description = "下载后端 Go 依赖"
+dir = "backend"
+run = "go mod download"
+
+[tasks.install-frontend]
+description = "安装 frontend 依赖"
+dir = "frontend"
+run = "pnpm install --frozen-lockfile"
+
+[tasks.install-user-portal]
+description = "安装 user-portal 依赖"
+dir = "user-portal"
+run = "pnpm install --frozen-lockfile"
+
+# ---------- 构建 ----------
+[tasks.build]
+description = "编译后端单二进制（内嵌 frontend）"
+depends = ["install-frontend"]
+run = [
+  "pnpm --dir frontend run build",
+  "cd backend && CGO_ENABLED=0 go build -tags embed -trimpath -o bin/server ./cmd/server",
+]
+
+# ---------- 质量：lint ----------
+[tasks.lint-backend]
+description = "后端 golangci-lint"
+dir = "backend"
+run = "golangci-lint run ./..."
+
+[tasks.lint-frontend]
+description = "frontend ESLint 检查"
+depends = ["install-frontend"]
+dir = "frontend"
+run = "pnpm run lint:check"
+
+[tasks.lint-user-portal]
+description = "user-portal ESLint 检查"
+depends = ["install-user-portal"]
+dir = "user-portal"
+run = "pnpm run lint:check"
+
+# ---------- 质量：test ----------
+[tasks.test-backend]
+description = "后端单测 + 集成测试"
+dir = "backend"
+run = [
+  "go test -tags=unit ./...",
+  "go test -tags=integration ./...",
+]
+
+[tasks.test-frontend]
+description = "frontend 类型检查 + 关键路径 vitest"
+depends = ["install-frontend"]
+dir = "frontend"
+run = [
+  "pnpm run typecheck",
+  "pnpm exec vitest run src/views/auth/__tests__/LinuxDoCallbackView.spec.ts src/views/auth/__tests__/WechatCallbackView.spec.ts src/views/user/__tests__/PaymentView.spec.ts src/views/user/__tests__/PaymentResultView.spec.ts src/components/user/profile/__tests__/ProfileInfoCard.spec.ts src/views/admin/__tests__/SettingsView.spec.ts",
+]
+
+[tasks.test-user-portal]
+description = "user-portal 类型检查"
+depends = ["install-user-portal"]
+dir = "user-portal"
+run = "pnpm run typecheck"
+
+# ---------- 镜像 ----------
+[tasks.backend-image]
+description = "构建 backend 镜像（backend/Dockerfile，context 取仓库根）"
+run = "docker build -f backend/Dockerfile -t sub2api-backend:local ."
+
+[tasks.user-portal-image]
+description = "构建 user-portal 镜像（user-portal/Dockerfile，context 取仓库根）"
+run = "docker build -f user-portal/Dockerfile -t sub2api-user-portal:local ."
