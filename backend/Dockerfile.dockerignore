@@ -1,0 +1,11 @@
+*
+!mise.toml
+!backend
+!frontend
+!docs
+docs/*
+!docs/legal
+**/node_modules
+**/dist
+backend/bin
+**/.git
