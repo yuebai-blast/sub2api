@@ -1,0 +1,24 @@
+# user-portal 独立前端工程工具链与命令（统一通过 mise 管理）
+[tools]
+node = "20.18.1"
+pnpm = "9.15.9"
+
+[tasks.install]
+description = "安装/更新全部依赖"
+run = "pnpm install"
+
+[tasks.dev]
+description = "启动开发服务器（端口 5174，/api/v1 代理到后端）"
+run = "pnpm dev"
+
+[tasks.build]
+description = "类型检查 + 生产构建"
+run = "pnpm build"
+
+[tasks.lint]
+description = "ESLint 检查"
+run = "pnpm lint"
+
+[tasks.typecheck]
+description = "vue-tsc 类型检查（不产出）"
+run = "pnpm typecheck"

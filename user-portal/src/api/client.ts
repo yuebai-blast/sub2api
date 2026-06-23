@@ -1,0 +1,168 @@
+/**
+ * Axios 客户端 —— 复刻主前端的鉴权与通信契约：
+ * - baseURL `/api/v1`，withCredentials
+ * - Bearer token 取自 localStorage.auth_token
+ * - 401 自动用 refresh_token 续期并重放（单次）
+ * - 统一返回体 { code, message, data }：code===0 解包 data，否则 reject
+ * - GET 自动注入 timezone 与 Accept-Language
+ */
+import axios, {
+  type AxiosInstance,
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+  type AxiosResponse
+} from 'axios'
+import type { ApiResponse } from './types'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+
+export const TOKEN_KEY = 'auth_token'
+export const REFRESH_KEY = 'refresh_token'
+
+export const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  timeout: 30000,
+  headers: { 'Content-Type': 'application/json' }
+})
+
+const getTimezone = (): string => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    return 'UTC'
+  }
+}
+
+const getLocale = (): string => {
+  try {
+    return localStorage.getItem('locale') || navigator.language || 'zh-CN'
+  } catch {
+    return 'zh-CN'
+  }
+}
+
+// ==================== 请求拦截器 ====================
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  if (config.headers) {
+    config.headers['Accept-Language'] = getLocale()
+  }
+  if (config.method === 'get') {
+    config.params = { ...(config.params || {}), timezone: getTimezone() }
+  }
+  return config
+})
+
+// ==================== Token 续期状态 ====================
+let isRefreshing = false
+let waiters: Array<(token: string | null) => void> = []
+
+function onRefreshed(token: string | null): void {
+  waiters.forEach((cb) => cb(token))
+  waiters = []
+}
+
+async function doRefresh(): Promise<string | null> {
+  const refreshToken = localStorage.getItem(REFRESH_KEY)
+  if (!refreshToken) return null
+  try {
+    const resp = await axios.post(
+      `${API_BASE_URL}/auth/refresh`,
+      { refresh_token: refreshToken },
+      { withCredentials: true }
+    )
+    const body = resp.data as ApiResponse<{ access_token?: string; token?: string; refresh_token?: string }>
+    const data = body?.code === 0 ? body.data : (resp.data as Record<string, string>)
+    const newToken = data?.access_token || data?.token || null
+    if (newToken) localStorage.setItem(TOKEN_KEY, newToken)
+    if (data?.refresh_token) localStorage.setItem(REFRESH_KEY, data.refresh_token)
+    return newToken
+  } catch {
+    return null
+  }
+}
+
+function clearAuthAndRedirect(): void {
+  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(REFRESH_KEY)
+  if (!window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login'
+  }
+}
+
+// ==================== 响应拦截器 ====================
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => {
+    const body = response.data as ApiResponse<unknown>
+    if (body && typeof body === 'object' && 'code' in body) {
+      if (body.code === 0) {
+        response.data = body.data
+      } else {
+        return Promise.reject({
+          status: response.status,
+          code: body.code,
+          message: body.message || 'Unknown error'
+        })
+      }
+    }
+    return response
+  },
+  async (error: AxiosError<ApiResponse<unknown>>) => {
+    if (error.code === 'ERR_CANCELED' || axios.isCancel(error)) {
+      return Promise.reject(error)
+    }
+
+    const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+    const status = error.response?.status
+    const url = String(error.config?.url || '')
+    const isAuthEndpoint =
+      url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')
+
+    if (status === 401 && !original?._retry && !isAuthEndpoint) {
+      const refreshToken = localStorage.getItem(REFRESH_KEY)
+      if (!refreshToken) {
+        clearAuthAndRedirect()
+        return Promise.reject(normalize(error))
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          waiters.push((token) => {
+            if (!token) return reject(normalize(error))
+            original._retry = true
+            original.headers.Authorization = `Bearer ${token}`
+            resolve(apiClient(original))
+          })
+        })
+      }
+
+      original._retry = true
+      isRefreshing = true
+      const newToken = await doRefresh()
+      isRefreshing = false
+      onRefreshed(newToken)
+
+      if (!newToken) {
+        clearAuthAndRedirect()
+        return Promise.reject(normalize(error))
+      }
+      original.headers.Authorization = `Bearer ${newToken}`
+      return apiClient(original)
+    }
+
+    return Promise.reject(normalize(error))
+  }
+)
+
+function normalize(error: AxiosError<ApiResponse<unknown>>) {
+  const data = error.response?.data as ApiResponse<unknown> | undefined
+  return {
+    status: error.response?.status,
+    code: data?.code ?? error.code,
+    message: data?.message || error.message || '请求失败'
+  }
+}

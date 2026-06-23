@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============ Mint 设计系统 · 主题变量 ============ */
+/* 浅色（默认）：薄荷主调 / 标准强度 / 衬线数字 */
+:root {
+  --bg: #fafaf8;
+  --card: #ffffff;
+  --bar: rgba(244, 243, 239, 0.86);
+  --border: #eceae3;
+  --border2: #dedbd2;
+  --text: #1a1a1a;
+  --text2: #5a5852;
+  --mtext: #3a3833;
+  --muted: #f4f3ef;
+  --track: #f0eee7;
+  --ink: #1a1a1a;
+  --accent: #14c28a;
+  --pos: #14a878;
+  --neg: #fb0682;
+  --subtle: #9a968c;
+  --faint: #b0aca2;
+  /* 衬线数字字体 */
+  --num-font: 'Newsreader', serif;
+}
+
+/* 深色：仅覆盖基础变量，厂商分布等品牌色块保持原样 */
+.dark {
+  --bg: #0e100e;
+  --card: #181a18;
+  --bar: rgba(16, 18, 16, 0.82);
+  --border: #2a2d2a;
+  --border2: #313431;
+  --text: #f2f1ec;
+  --text2: #b6b3aa;
+  --mtext: #e6e4dd;
+  --muted: #222522;
+  --track: #2a2d2a;
+  --ink: #d8d5cc;
+  --accent: #14c28a;
+  --pos: #14a878;
+  --neg: #fb0682;
+  --subtle: #9a968c;
+  --faint: #8b877e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* 衬线数字工具类（金额、KPI 大数字等） */
+.num {
+  font-family: var(--num-font);
+}
