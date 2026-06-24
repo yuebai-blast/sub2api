@@ -72,16 +72,21 @@ export interface PublicSettings {
   oidc_oauth_provider_name: string
   wechat_oauth_enabled: boolean
   site_name: string
+  purchase_subscription_enabled?: boolean
 }
 
 // ==================== API 密钥 ====================
 
-export interface ApiKeyGroup {
+export interface Group {
   id: number
   name: string
+  description?: string
   platform?: string
   rate_multiplier?: number
+  subscription_type?: string
 }
+
+export type GroupRates = Record<string, number>
 
 export interface ApiKey {
   id: number
@@ -96,12 +101,12 @@ export interface ApiKey {
   expires_at: string | null
   created_at: string
   rate_limit_1d: number
-  group?: ApiKeyGroup
+  group?: Group
 }
 
 export interface CreateApiKeyRequest {
   name: string
-  group_id?: number | null
+  group_id?: number
   expires_in_days?: number
   quota?: number
 }
@@ -120,27 +125,15 @@ export interface ApiKeyUsageStat {
 
 // ==================== 支付 / 订单 ====================
 
-export type OrderStatus =
-  | 'PENDING'
-  | 'PAID'
-  | 'RECHARGING'
-  | 'COMPLETED'
-  | 'EXPIRED'
-  | 'CANCELLED'
-  | 'FAILED'
-  | 'REFUND_REQUESTED'
-  | 'REFUNDING'
-  | 'PARTIALLY_REFUNDED'
-  | 'REFUNDED'
-  | 'REFUND_FAILED'
+export type OrderStatus = 'pending' | 'paid' | 'completed' | 'failed' | 'refunded'
 
 export interface PaymentOrder {
   id: number
   user_id: number
   amount: number
   pay_amount: number
-  currency?: string
   fee_rate: number
+  currency?: string
   payment_type: string
   out_trade_no: string
   status: OrderStatus
@@ -148,43 +141,78 @@ export interface PaymentOrder {
   created_at: string
   expires_at: string
   paid_at?: string
-  refund_amount: number
+  completed_at?: string
+  refund_amount?: number
+  refund_reason?: string
+  plan_id?: number
+  provider_instance_id?: string
 }
 
 export interface MethodLimit {
-  currency?: string
-  single_min: number
-  single_max: number
+  min: number
+  max: number
   fee_rate: number
-  available: boolean
+}
+
+export interface SubscriptionPlan {
+  id: number
+  group_id: number
+  group_platform?: string
+  group_name?: string
+  rate_multiplier?: number
+  daily_limit_usd?: number
+  weekly_limit_usd?: number
+  monthly_limit_usd?: number
+  name: string
+  description?: string
+  price: number
+  original_price?: number
+  validity_days: number
+  validity_unit?: string
+  features?: string[]
 }
 
 export interface CheckoutInfoResponse {
   methods: Record<string, MethodLimit>
   global_min: number
   global_max: number
+  plans: SubscriptionPlan[]
   balance_disabled: boolean
   balance_recharge_multiplier: number
   recharge_fee_rate: number
   stripe_publishable_key: string
+  alipay_force_qrcode?: boolean
 }
 
 export interface CreateOrderRequest {
   amount: number
   payment_type: string
-  order_type: string
+  order_type: 'balance' | 'subscription'
+  plan_id?: number
   return_url?: string
+  is_mobile?: boolean
 }
 
-export interface CreateOrderResult {
-  order_id: number
-  amount: number
+/**
+ * 下单返回。pay_url / qr_code / result_type 等支付引导字段以后端 create-order
+ * handler 实际返回为准——实现 Task 11 前先读 backend payment handler 的响应 DTO，
+ * 缺哪个补哪个，不要凭此处猜测发请求。
+ */
+export interface CreateOrderResult extends PaymentOrder {
   pay_url?: string
   qr_code?: string
-  pay_amount: number
-  fee_rate: number
-  expires_at: string
-  out_trade_no?: string
+  result_type?: string
+}
+
+// ==================== OAuth 绑定 ====================
+
+export interface BindStartRequest {
+  provider: string
+  redirect_to?: string
+}
+
+export interface BindStartResult {
+  authorize_url: string
 }
 
 // ==================== 兑换码 ====================
@@ -293,7 +321,7 @@ export interface UsageLog {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[]
+  data: T[]
   total: number
   page: number
   page_size: number
