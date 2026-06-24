@@ -29,6 +29,28 @@ export async function getDashboardModels(params?: {
   return data
 }
 
+export interface UsageQueryParams {
+  page?: number
+  page_size?: number
+  start_date?: string
+  end_date?: string
+  api_key_id?: number
+  sort_by?: string
+  sort_order?: 'asc' | 'desc'
+}
+
+/** 分页查询使用记录（使用记录页主查询） */
+export async function queryUsage(
+  params: UsageQueryParams,
+  options?: { signal?: AbortSignal }
+): Promise<PaginatedResponse<UsageLog>> {
+  const { data } = await apiClient.get<PaginatedResponse<UsageLog>>('/usage', {
+    params,
+    signal: options?.signal
+  })
+  return data
+}
+
 /** 按日期区间查询使用记录（取最近若干条） */
 export async function getRecentUsage(
   startDate: string,

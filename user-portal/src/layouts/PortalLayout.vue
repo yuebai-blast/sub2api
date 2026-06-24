@@ -24,6 +24,11 @@ const email = computed(() => authStore.user?.email || '')
 const initial = computed(() => (username.value || '?').charAt(0).toUpperCase())
 const isDark = computed(() => themeStore.mode === 'dark')
 
+function go(path: string) {
+  closeMenu()
+  router.push(path)
+}
+
 async function handleLogout() {
   closeMenu()
   await authStore.logout()
@@ -117,15 +122,15 @@ onMounted(() => {
 
             <a
               class="mi font-semibold text-accent"
-              @click="closeMenu"
+              @click="go('/recharge')"
             >充值<span class="text-accent">→</span></a>
             <a
               class="mi"
-              @click="closeMenu"
+              @click="go('/orders')"
             >我的订单<span>→</span></a>
             <a
               class="mi"
-              @click="closeMenu"
+              @click="go('/profile')"
             >个人资料<span>→</span></a>
 
             <div class="mx-1.5 my-1.5 h-px bg-track" />

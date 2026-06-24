@@ -40,6 +40,24 @@ export function percent(part: number, whole: number): number {
   return Math.min(100, Math.max(0, Math.round((part / whole) * 100)))
 }
 
+/** 日期时间 YYYY/MM/DD HH:mm:ss */
+export function formatDateTime(s: string | null | undefined): string {
+  if (!s) return '—'
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return '—'
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
+
+/** 日期 YYYY/MM/DD HH:mm */
+export function formatDateMinute(s: string | null | undefined): string {
+  if (!s) return '—'
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return '—'
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
 /** 本地日期字符串 YYYY-MM-DD */
 export function toLocalDate(d: Date): string {
   const y = d.getFullYear()

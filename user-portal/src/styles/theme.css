@@ -12,9 +12,12 @@
   --border2: #dedbd2;
   --text: #1a1a1a;
   --text2: #5a5852;
+  --text3: #7a766c;
   --mtext: #3a3833;
   --muted: #f4f3ef;
   --track: #f0eee7;
+  --hover: #fcfbf8;
+  --rowline: #f4f2eb;
   --ink: #1a1a1a;
   --accent: #14c28a;
   --pos: #14a878;
@@ -34,9 +37,12 @@
   --border2: #313431;
   --text: #f2f1ec;
   --text2: #b6b3aa;
+  --text3: #a6a39b;
   --mtext: #e6e4dd;
   --muted: #222522;
   --track: #2a2d2a;
+  --hover: #1e201e;
+  --rowline: #232622;
   --ink: #d8d5cc;
   --accent: #14c28a;
   --pos: #14a878;
