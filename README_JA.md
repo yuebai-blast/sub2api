@@ -194,6 +194,7 @@ Nginx はデフォルトでアンダースコアを含むヘッダー（例: `se
 cd deploy
 cp .env.example .env        # 外部 DB/Redis 接続、JWT シークレット等を編集
 cp config.example.yaml config.yaml
+# 起動前に .env の OWNER に GitHub ユーザー名または組織名（小文字）を設定してください
 docker compose up -d
 ```
 
