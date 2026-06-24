@@ -114,6 +114,7 @@ export interface CreateApiKeyRequest {
 export interface UpdateApiKeyRequest {
   name?: string
   status?: 'active' | 'inactive'
+  group_id?: number | null
 }
 
 /** 单个密钥的批量用量统计 */
