@@ -210,7 +210,7 @@ openssl rand -hex 32
 
 ```bash
 # ログを表示
-docker compose logs -f sub2api
+docker compose logs -f backend
 
 # ステータスを確認
 docker compose ps
@@ -227,7 +227,7 @@ docker compose down
 ブラウザで `http://YOUR_SERVER_IP:8080` を開いてください。`ADMIN_PASSWORD` を設定しなかった場合は、ログで自動生成されたパスワードを確認できます:
 
 ```bash
-docker compose logs sub2api | grep "admin password"
+docker compose logs backend | grep "admin password"
 ```
 
 ---
@@ -238,8 +238,7 @@ docker compose logs sub2api | grep "admin password"
 
 #### 前提条件
 
-- Go 1.21+
-- Node.js 18+
+- [mise](https://mise.jdx.dev/) — ツールチェーンマネージャー（`mise.toml` から Go 1.26.4、Node.js 20.18.1、pnpm 9.15.9 をインストール）
 - PostgreSQL 15+
 - Redis 7+
 
@@ -250,24 +249,17 @@ docker compose logs sub2api | grep "admin password"
 git clone https://github.com/Wei-Shaw/sub2api.git
 cd sub2api
 
-# 2. pnpm をインストール（未インストールの場合）
-npm install -g pnpm
+# 2. mise でツールチェーンと依存関係をインストール
+mise run install
 
-# 3. フロントエンドをビルド
-cd frontend
-pnpm install
-pnpm run build
-# 出力先: ../backend/internal/web/dist/
+# 3. フロントエンド + バックエンドをビルド（フロントエンド組み込み済みの単一バイナリ）
+mise run build
 
-# 4. フロントエンドを組み込んだバックエンドをビルド
-cd ../backend
-go build -tags embed -o sub2api ./cmd/server
+# 4. 設定ファイルを作成
+cp deploy/config.example.yaml backend/config.yaml
 
-# 5. 設定ファイルを作成
-cp ../deploy/config.example.yaml ./config.yaml
-
-# 6. 設定を編集
-nano config.yaml
+# 5. 設定を編集
+nano backend/config.yaml
 ```
 
 > **注意:** `-tags embed` フラグはフロントエンドをバイナリに組み込みます。このフラグがない場合、バイナリはフロントエンド UI を提供しません。

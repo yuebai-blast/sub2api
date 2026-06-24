@@ -8,7 +8,7 @@
 
 services:
   backend:
-    image: ghcr.io/OWNER/sub2api:latest
+    image: ghcr.io/${OWNER}/sub2api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -25,7 +25,7 @@ services:
       start_period: 10s
 
   user-portal:
-    image: ghcr.io/OWNER/sub2api-user-portal:latest
+    image: ghcr.io/${OWNER}/sub2api-user-portal:latest
     restart: unless-stopped
     ports:
       - "8081:80"
