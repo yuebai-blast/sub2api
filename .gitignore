@@ -138,3 +138,6 @@ docs/*
 frontend/coverage/
 aicodex
 output/
+
+# Superpowers 本地技能目录（Claude Code 本地配置，不入库）
+.superpowers/
