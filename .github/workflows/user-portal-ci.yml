@@ -1,0 +1,13 @@
+name: User Portal CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  user-portal-quality:
+    name: User Portal Quality
+    uses: ./.github/workflows/user-portal-quality.yml
