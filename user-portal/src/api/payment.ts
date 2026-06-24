@@ -5,7 +5,8 @@ import type {
   CreateOrderRequest,
   CreateOrderResult,
   PaymentOrder,
-  PaginatedResponse
+  PaginatedResponse,
+  SubscriptionPlan
 } from './types'
 
 /** 结算页所需的聚合信息（支付方式、限额、汇率、最低额等） */
@@ -35,4 +36,18 @@ export async function getMyOrders(params?: {
 /** 取消待支付订单 */
 export async function cancelOrder(id: number): Promise<void> {
   await apiClient.post(`/payment/orders/${id}/cancel`)
+}
+
+/** 主动查询订单支付状态 */
+export async function verifyOrder(outTradeNo: string): Promise<PaymentOrder> {
+  const { data } = await apiClient.post<PaymentOrder>('/payment/orders/verify', {
+    out_trade_no: outTradeNo
+  })
+  return data
+}
+
+/** 获取可购买的订阅套餐列表 */
+export async function getPlans(): Promise<SubscriptionPlan[]> {
+  const { data } = await apiClient.get<SubscriptionPlan[]>('/payment/plans')
+  return data
 }
