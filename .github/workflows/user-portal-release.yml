@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 concurrency:
@@ -18,13 +18,38 @@ env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/sub2api-user-portal
 
 jobs:
+  version-gate:
+    name: Version Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Verify tag version matches package.json
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "${REF_TYPE}" != "tag" ]; then
+            echo "非 tag 触发（${REF_NAME}），跳过版本一致性校验"
+            exit 0
+          fi
+          TAG_VERSION="${REF_NAME#user-portal-v}"
+          FILE_VERSION="$(jq -r .version user-portal/package.json)"
+          echo "tag 版本：${TAG_VERSION}"
+          echo "文件版本：${FILE_VERSION}"
+          if [ "${TAG_VERSION}" != "${FILE_VERSION}" ]; then
+            echo "::error::tag 版本(${TAG_VERSION}) 与 user-portal/package.json(${FILE_VERSION}) 不一致；请用 'mise run user-portal-release ${TAG_VERSION}' 改对版本号后重新发版"
+            exit 1
+          fi
+          echo "版本一致，门禁通过"
+
   user-portal-quality:
     name: User Portal Quality
     uses: ./.github/workflows/user-portal-quality.yml
 
   build-push:
     name: Build and Push
-    needs: [user-portal-quality]
+    needs: [version-gate, user-portal-quality]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,3 +82,61 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  github-release:
+    name: GitHub Release
+    needs: [build-push]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Build changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v6
+        with:
+          mode: COMMIT
+          toTag: ${{ github.ref_name }}
+          configurationJson: |
+            {
+              "template": "#{{CHANGELOG}}",
+              "tag_resolver": {
+                "method": "semver",
+                "filter": { "pattern": "^user-portal-v" },
+                "transformer": { "pattern": "^user-portal-v(.+)$", "target": "$1" }
+              },
+              "label_extractor": [
+                {
+                  "pattern": "^(feat|fix|perf|refactor|revert|build|chore|ci|docs|style|test)[(!:]",
+                  "on_property": "title",
+                  "target": "$1"
+                }
+              ],
+              "categories": [
+                { "title": "## 🚀 新功能", "labels": ["feat"] },
+                { "title": "## 🐛 修复", "labels": ["fix"] },
+                { "title": "## ⚡ 性能", "labels": ["perf"] },
+                { "title": "## ♻️ 重构", "labels": ["refactor"] },
+                { "title": "## ⏪ 回滚", "labels": ["revert"] }
+              ]
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Assemble release notes
+        env:
+          TAG: ${{ github.ref_name }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
+        run: |
+          : > notes.md
+          if [ "$(git cat-file -t "$TAG")" = "tag" ]; then
+            git tag -l --format='%(contents)' "$TAG" >> notes.md
+            printf '\n\n' >> notes.md
+          fi
+          printf '%s\n' "$CHANGELOG" >> notes.md
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          body_path: notes.md
