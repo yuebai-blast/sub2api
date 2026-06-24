@@ -259,7 +259,7 @@ mise run install
 mise run build
 
 # 4. Create configuration file
-cp deploy/config.example.yaml backend/config.yaml
+cp backend/config.example.yaml backend/config.yaml
 
 # 5. Edit configuration
 nano backend/config.yaml
@@ -442,18 +442,17 @@ sub2api/
 │   │   └── gateway/          # API gateway core
 │   └── resources/            # Static resources
 │
-├── frontend/                 # Vue 3 frontend
+├── frontend/                 # Vue 3 admin frontend (embedded into backend binary)
 │   └── src/
 │       ├── api/              # API calls
 │       ├── stores/           # State management
 │       ├── views/            # Page components
 │       └── components/       # Reusable components
 │
-└── deploy/                   # Deployment files
-    ├── docker-compose.yml    # Docker Compose configuration
-    ├── .env.example          # Environment variables template
-    ├── config.example.yaml   # Full configuration file example
-    └── Caddyfile             # Example Caddy reverse proxy configuration
+├── user-portal/              # Standalone user portal SPA (nginx image)
+│
+├── docker-compose.yml        # Docker Compose orchestration (backend + user-portal)
+└── .env.example              # Compose-level environment variables template
 ```
 
 ## Disclaimer

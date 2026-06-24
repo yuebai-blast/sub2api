@@ -104,12 +104,13 @@ backend/internal/web/dist/*
 
 # 后端运行时缓存数据
 backend/data/
+# Docker Compose 运行时数据卷（含自动生成的 config.yaml/.installed/日志，带密钥）
+/data/
 
 # ===================
 # 本地配置文件（包含敏感信息）
 # ===================
 backend/config.yaml
-deploy/config.yaml
 backend/.installed
 
 # ===================
@@ -124,7 +125,7 @@ scripts
 code-reviews/
 AGENTS.md
 backend/cmd/server/server
-deploy/docker-compose.override.yml
+docker-compose.override.yml
 .gocache/
 vite.config.js
 docs/*

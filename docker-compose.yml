@@ -1,7 +1,9 @@
 # Sub2API Docker 部署：backend + user-portal 两镜像
 #
-# 网络说明：外部反代（如 Caddy，见 Caddyfile）必须加入本 compose 网络才能
-#          通过服务名（backend:8080、user-portal:80）与容器通信。
+# 网络说明：服务端口仅绑定 127.0.0.1（见下方 ports），需自备反向代理对外暴露。
+#          反代须加入本 compose 网络，才能通过服务名（backend:8080、user-portal:80）通信。
+#          路由约定：/api /v1 /v1beta /backend-api /antigravity /setup /responses /images /health
+#          及内嵌 admin 前端 → backend:8080；用户门户 → user-portal:80。
 #
 # 数据库/缓存：PostgreSQL 与 Redis 为外部独立服务（不在本 compose 中），
 #              通过 .env 文件配置其主机地址。

@@ -45,7 +45,7 @@ if [ ! -x bin/server ]; then
 fi
 if [ ! -f config.yaml ]; then
   echo "缺少 backend/config.yaml，请先从模板拷贝并按需修改（外部 DB/Redis 连接等）："
-  echo "  cp deploy/config.example.yaml backend/config.yaml   # 在仓库根执行"
+  echo "  cp backend/config.example.yaml backend/config.yaml   # 在仓库根执行"
   exit 1
 fi
 exec ./bin/server
