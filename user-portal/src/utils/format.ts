@@ -65,3 +65,50 @@ export function toLocalDate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
+
+/** 掩码密钥：前 6 + … + 后 4，对齐设计稿 sk-4d2…e32d */
+export function maskApiKey(key: string | null | undefined): string {
+  if (!key) return '—'
+  if (key.length <= 12) return key
+  return `${key.slice(0, 6)}…${key.slice(-4)}`
+}
+
+/** 推理强度标签 */
+export function formatReasoningEffort(e: string | null | undefined): string {
+  if (!e) return '—'
+  const map: Record<string, string> = {
+    minimal: 'Minimal', low: 'Low', medium: 'Medium', high: 'High', xhigh: 'XHigh'
+  }
+  return map[e] ?? (e.charAt(0).toUpperCase() + e.slice(1))
+}
+
+/** 订单状态 → 中文 + StatusBadge variant */
+export function orderStatusMeta(s: string): { label: string; variant: string } {
+  const m: Record<string, { label: string; variant: string }> = {
+    pending: { label: '待支付', variant: 'pending' },
+    paid: { label: '已支付', variant: 'paid' },
+    completed: { label: '已完成', variant: 'paid' },
+    failed: { label: '失败', variant: 'neg' },
+    refunded: { label: '已退款', variant: 'muted' }
+  }
+  return m[s] ?? { label: s, variant: 'muted' }
+}
+
+/** 注册月份 Jun 2026 */
+export function formatRegMonth(s: string | null | undefined): string {
+  if (!s) return '—'
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return '—'
+  return new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(d)
+}
+
+const cny0 = new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+/** 人民币金额（2 位小数，无符号，调用方自行加 ¥） */
+export function formatCNY(n: number): string {
+  return cny0.format(Number.isFinite(n) ? n : 0)
+}
+
+/** 缓存命中率 0-100 整数 */
+export function cacheHitRate(cacheRead: number, input: number): number {
+  return percent(cacheRead, (input ?? 0) + (cacheRead ?? 0))
+}
