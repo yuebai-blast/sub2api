@@ -5,6 +5,7 @@
 !docs
 docs/*
 !docs/legal
+!docs/legal/**
 **/node_modules
 **/dist
 backend/bin
