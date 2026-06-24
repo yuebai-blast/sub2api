@@ -6,7 +6,7 @@ import type { Group, CreateApiKeyRequest, ApiKey } from '@/api/types'
 const props = defineProps<{ open: boolean; groups: Group[] }>()
 const emit = defineEmits<{
   close: []
-  submit: [payload: CreateApiKeyRequest, done: (k: ApiKey) => void]
+  submit: [payload: CreateApiKeyRequest, done: (nk: ApiKey | null) => void]
 }>()
 
 const name = ref('')
@@ -16,6 +16,7 @@ const quota = ref<number | null>(null)
 const submitting = ref(false)
 const createdKey = ref<ApiKey | null>(null)
 const copied = ref(false)
+const errorMsg = ref('')
 
 watch(
   () => props.open,
@@ -28,6 +29,7 @@ watch(
       createdKey.value = null
       copied.value = false
       submitting.value = false
+      errorMsg.value = ''
     }
   }
 )
@@ -35,6 +37,7 @@ watch(
 function submit() {
   if (!name.value.trim() || submitting.value) return
   submitting.value = true
+  errorMsg.value = ''
   emit(
     'submit',
     {
@@ -43,9 +46,14 @@ function submit() {
       expires_in_days: expiresInDays.value ?? undefined,
       quota: quota.value ?? undefined
     },
-    (k) => {
-      createdKey.value = k
+    (nk) => {
       submitting.value = false
+      if (nk) {
+        createdKey.value = nk
+      } else {
+        // 创建失败：保持表单，提示错误
+        errorMsg.value = '创建失败，请重试'
+      }
     }
   )
 }
@@ -129,6 +137,14 @@ async function copyKey() {
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
           >
         </div>
+
+        <!-- 错误提示 -->
+        <p
+          v-if="errorMsg"
+          class="text-xs text-neg"
+        >
+          {{ errorMsg }}
+        </p>
       </div>
     </template>
 

@@ -37,19 +37,22 @@ function onCopy(key: ApiKey) {
   navigator.clipboard?.writeText(key.key).catch(() => {})
 }
 
-async function doCreate(payload: CreateApiKeyRequest, done: (nk: ApiKey) => void) {
+async function doCreate(payload: CreateApiKeyRequest, done: (nk: ApiKey | null) => void) {
   try {
     const nk = await k.create(payload)
     done(nk)
   } catch {
-    // 创建失败时也回调，让弹窗恢复可提交状态
-    done(null as unknown as ApiKey)
+    // 创建失败时回调 null，由弹窗展示错误并保持表单
+    done(null)
   }
 }
 
 async function doEdit(id: number, patch: UpdateApiKeyRequest) {
-  await k.update(id, patch)
-  editTarget.value = null
+  try {
+    await k.update(id, patch)
+  } finally {
+    editTarget.value = null
+  }
 }
 
 async function confirmRemove() {

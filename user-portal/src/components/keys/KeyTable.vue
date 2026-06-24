@@ -44,7 +44,7 @@ function platformDot(platform: string | undefined): string {
     <div
       v-for="row in rows"
       :key="row.id"
-      class="grid grid-cols-[1.4fr_1.5fr_1fr_1.3fr_0.9fr_1.7fr] items-center gap-4 border-b border-[#F4F2EB] px-[26px] py-5 transition-colors hover:bg-hover"
+      class="grid grid-cols-[1.4fr_1.5fr_1fr_1.3fr_0.9fr_1.7fr] items-center gap-4 border-b border-rowline px-[26px] py-5 transition-colors hover:bg-hover"
       :class="row.status === 'inactive' ? 'opacity-[0.72]' : ''"
     >
       <!-- 名称 · 密钥 -->
@@ -92,8 +92,8 @@ function platformDot(platform: string | undefined): string {
 
       <!-- 用量 -->
       <div class="text-[13px] leading-relaxed text-text3">
-        今日 <b class="font-semibold text-text">${{ formatCost(usage[row.id]?.today_actual_cost ?? 0) }}</b><br>
-        30天 <b class="font-semibold text-text">${{ formatCost(usage[row.id]?.total_actual_cost ?? 0) }}</b>
+        今日 <b class="font-semibold text-text">${{ formatCost(usage[String(row.id)]?.today_actual_cost ?? 0) }}</b><br>
+        30天 <b class="font-semibold text-text">${{ formatCost(usage[String(row.id)]?.total_actual_cost ?? 0) }}</b>
       </div>
 
       <!-- 速率 -->
