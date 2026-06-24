@@ -173,7 +173,7 @@ fi
 
 TAG="user-portal-v${VERSION}"
 (cd user-portal && pnpm version "${VERSION}" --no-git-tag-version --allow-same-version >/dev/null)
-git add user-portal/package.json user-portal/pnpm-lock.yaml
+git add user-portal/package.json
 git commit -m "chore(release): 发布 user-portal v${VERSION}"
 if [ -n "${NOTES}" ]; then
   git tag -a "${TAG}" -m "${NOTES}"
