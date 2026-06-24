@@ -63,9 +63,9 @@ ARG PG_CLIENT_VERSION
 
 LABEL description="Sub2API - AI API Gateway Platform (backend)"
 
-# 运行时依赖：ca-certificates/tzdata/gosu/curl(healthcheck) + PGDG postgresql-client
+# 运行时依赖：ca-certificates/tzdata/curl(healthcheck) + PGDG postgresql-client
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates tzdata gosu curl gnupg \
+    && apt-get install -y --no-install-recommends ca-certificates tzdata curl gnupg \
     && install -d /usr/share/postgresql-common/pgdg \
     && curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
          https://www.postgresql.org/media/keys/ACCC4CF8.asc \
@@ -77,20 +77,15 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# 非 root 用户
-RUN groupadd -g 1000 sub2api && useradd -u 1000 -g sub2api -s /bin/sh -m sub2api
-
+# 以 root 运行（不创建非 root 用户）：root 可直接写挂载卷 /app/data，
+# 无需 entrypoint 脚本做 chown/降权。
 WORKDIR /app
-COPY --from=build --chown=sub2api:sub2api /app/sub2api /app/sub2api
-COPY --from=build --chown=sub2api:sub2api /app/backend/resources /app/resources
-RUN mkdir -p /app/data && chown sub2api:sub2api /app/data
-
-COPY backend/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+COPY --from=build /app/sub2api /app/sub2api
+COPY --from=build /app/backend/resources /app/resources
+RUN mkdir -p /app/data
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -fsS -m 5 "http://localhost:${SERVER_PORT:-8080}/health" || exit 1
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["/app/sub2api"]
+ENTRYPOINT ["/app/sub2api"]
