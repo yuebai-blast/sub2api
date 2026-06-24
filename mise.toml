@@ -34,6 +34,23 @@ run = [
   "cd backend && CGO_ENABLED=0 go build -tags embed -trimpath -o bin/server ./cmd/server",
 ]
 
+# ---------- 本地运行 ----------
+[tasks.run]
+description = "本地运行已构建的后端单二进制（内嵌前端；需先 mise run build + backend/config.yaml + 外部 DB/Redis）"
+dir = "backend"
+run = '''
+if [ ! -x bin/server ]; then
+  echo "未找到 backend/bin/server，请先执行：mise run build"
+  exit 1
+fi
+if [ ! -f config.yaml ]; then
+  echo "缺少 backend/config.yaml，请先从模板拷贝并按需修改（外部 DB/Redis 连接等）："
+  echo "  cp deploy/config.example.yaml backend/config.yaml   # 在仓库根执行"
+  exit 1
+fi
+exec ./bin/server
+'''
+
 # ---------- 代码生成 ----------
 [tasks.generate]
 description = "重新生成 Ent ORM 与 Wire 注入代码（改 schema/wire 后必跑，生成物要提交）"
