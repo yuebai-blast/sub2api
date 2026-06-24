@@ -1,5 +1,11 @@
 # Sub2API Docker 部署：backend + user-portal 两镜像
-# DB 与 Redis 为外部独立容器/服务，本文件不内置。
+#
+# 网络说明：外部反代（如 Caddy，见 Caddyfile）必须加入本 compose 网络才能
+#          通过服务名（backend:8080、user-portal:80）与容器通信。
+#
+# 数据库/缓存：PostgreSQL 与 Redis 为外部独立服务（不在本 compose 中），
+#              通过 .env 文件配置其主机地址。
+
 services:
   backend:
     image: ghcr.io/OWNER/sub2api:latest
