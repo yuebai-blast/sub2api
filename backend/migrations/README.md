@@ -71,13 +71,15 @@ Why?
    - If rollback is needed, create a new migration file to revert
 
 3. **Test locally**
+   Migrations are embedded (`migrations.FS`) and applied **automatically on server
+   startup** by `internal/repository/migrations_runner.go` (`ApplyMigrations`):
+   forward-only, tracked in the `schema_migrations` table, serialized by a
+   PostgreSQL advisory lock. To test, just start the server against your dev DB:
    ```bash
-   # Apply migration
-   make migrate-up
-
-   # Test rollback
-   make migrate-down
+   cd backend && go run ./cmd/server/
    ```
+   There is no down/rollback command — migrations are forward-only. To revert a
+   change, add a new migration file (see "What NOT to Do" below).
 
 4. **Commit and deploy**
    ```bash

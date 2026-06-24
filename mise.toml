@@ -34,6 +34,15 @@ run = [
   "cd backend && CGO_ENABLED=0 go build -tags embed -trimpath -o bin/server ./cmd/server",
 ]
 
+# ---------- 代码生成 ----------
+[tasks.generate]
+description = "重新生成 Ent ORM 与 Wire 注入代码（改 schema/wire 后必跑，生成物要提交）"
+dir = "backend"
+run = [
+  "go generate ./ent",
+  "go generate ./cmd/server",
+]
+
 # ---------- 质量：lint ----------
 [tasks.lint-backend]
 description = "后端 golangci-lint"
@@ -75,6 +84,11 @@ description = "user-portal 类型检查"
 depends = ["install-user-portal"]
 dir = "user-portal"
 run = "pnpm run typecheck"
+
+[tasks.test-e2e-local]
+description = "本地端到端测试（go test -tags=e2e ./internal/integration/...）"
+dir = "backend"
+run = "go test -tags=e2e -v -timeout=300s ./internal/integration/..."
 
 # ---------- 镜像 ----------
 [tasks.backend-image]

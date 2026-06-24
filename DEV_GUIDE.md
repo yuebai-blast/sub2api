@@ -181,18 +181,18 @@ grep -r "type.*Mock.*struct" internal/
 
 ---
 
-### 坑 8：Windows 没有 make 命令
+### 坑 8：命令统一走 mise（已不再用 make）
 
-**问题**：CI 里用 `make test-unit`，本地 Windows 没有 make。
+**说明**：项目已去掉 Makefile，所有命令收口到根 `mise.toml`，CI 也走 `mise run`。
+mise 跨平台（含 Windows），不再有"Windows 没有 make"的问题。
 
-**解决**：直接用 Makefile 里的原始命令：
 ```bash
-# 代替 make test-unit
-go test -tags=unit ./...
-
-# 代替 make test-integration
-go test -tags=integration ./...
+mise run test-backend    # 后端单测 + 集成测试
+mise run test-frontend   # 前端类型检查 + 关键路径 vitest
+mise run build           # 编译内嵌前端的后端单二进制
 ```
+
+需要单点调试时仍可直接用底层命令（如 `cd backend && go test -tags=unit ./...`）。
 
 ---
 
