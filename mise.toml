@@ -115,3 +115,72 @@ run = "docker build -f backend/Dockerfile -t sub2api-backend:local ."
 [tasks.user-portal-image]
 description = "构建 user-portal 镜像（user-portal/Dockerfile，context 取仓库根）"
 run = "docker build -f user-portal/Dockerfile -t sub2api-user-portal:local ."
+
+# ---------- 发版（打 tag，收口改版本→提交→tag→推送） ----------
+[tasks.backend-release]
+description = "发布 backend：改版本号→提交→打 tag→推送（参数：<版本> [--notes 说明]）"
+usage = '''
+arg "<version>" help="语义化版本号，如 0.2.0（不带 v 前缀）"
+flag "--notes <notes>" help="本次更新重点，写入 annotated tag 注释并作为 GitHub Release 正文置顶" default=""
+'''
+run = '''
+set -euo pipefail
+VERSION="${usage_version}"
+NOTES="${usage_notes:-}"
+
+if ! printf '%s' "${VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+  echo "错误：版本号 '${VERSION}' 不是合法 SemVer（应形如 0.2.0 或 0.2.0-rc.1）" >&2
+  exit 1
+fi
+if [ -n "$(git status --porcelain)" ]; then
+  echo "错误：工作区不干净，请先提交或清理后再发版" >&2
+  exit 1
+fi
+
+TAG="backend-v${VERSION}"
+printf '%s\n' "${VERSION}" > backend/cmd/server/VERSION
+git add backend/cmd/server/VERSION
+git commit -m "chore(release): 发布 backend v${VERSION}"
+if [ -n "${NOTES}" ]; then
+  git tag -a "${TAG}" -m "${NOTES}"
+else
+  git tag "${TAG}"
+fi
+git push origin HEAD
+git push origin "${TAG}"
+echo "已发布 ${TAG}：commit 与 tag 均已推送，CI 将自动构建并创建 GitHub Release"
+'''
+
+[tasks.user-portal-release]
+description = "发布 user-portal：改版本号→提交→打 tag→推送（参数：<版本> [--notes 说明]）"
+usage = '''
+arg "<version>" help="语义化版本号，如 0.2.0（不带 v 前缀）"
+flag "--notes <notes>" help="本次更新重点，写入 annotated tag 注释并作为 GitHub Release 正文置顶" default=""
+'''
+run = '''
+set -euo pipefail
+VERSION="${usage_version}"
+NOTES="${usage_notes:-}"
+
+if ! printf '%s' "${VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+  echo "错误：版本号 '${VERSION}' 不是合法 SemVer（应形如 0.2.0 或 0.2.0-rc.1）" >&2
+  exit 1
+fi
+if [ -n "$(git status --porcelain)" ]; then
+  echo "错误：工作区不干净，请先提交或清理后再发版" >&2
+  exit 1
+fi
+
+TAG="user-portal-v${VERSION}"
+(cd user-portal && pnpm version "${VERSION}" --no-git-tag-version --allow-same-version >/dev/null)
+git add user-portal/package.json user-portal/pnpm-lock.yaml
+git commit -m "chore(release): 发布 user-portal v${VERSION}"
+if [ -n "${NOTES}" ]; then
+  git tag -a "${TAG}" -m "${NOTES}"
+else
+  git tag "${TAG}"
+fi
+git push origin HEAD
+git push origin "${TAG}"
+echo "已发布 ${TAG}：commit 与 tag 均已推送，CI 将自动构建并创建 GitHub Release"
+'''
