@@ -13,10 +13,11 @@ services:
     env_file:
       - .env
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
-      - backend_data:/app/data
+      # 单一 bind mount：config.yaml、logs、pricing、.installed 等全部落在 ./data 下
+      # （容器内 /app/data 是配置查找与数据落地的默认目录），把 config.yaml 放在 ./data/config.yaml
+      - ./data:/app/data
     ports:
-      - "8080:8080"
+      - "127.0.0.1:9200:8080"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-m", "5", "http://localhost:8080/health"]
       interval: 30s
@@ -28,7 +29,4 @@ services:
     image: ghcr.io/${OWNER}/sub2api-user-portal:latest
     restart: unless-stopped
     ports:
-      - "8081:80"
-
-volumes:
-  backend_data:
+      - "127.0.0.1:9201:80"
