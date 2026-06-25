@@ -2,11 +2,24 @@
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import { verifyOrder } from '@/api/payment'
-import type { CreateOrderResult } from '@/api/types'
+
+/**
+ * 弹窗接受两类订单，统一用此类型描述：
+ * - CreateOrderResult：刚下单返回（含 pay_url / qr_code）
+ * - PaymentOrder：订单列表里的待支付订单（仅 out_trade_no + expires_at，无 pay_url / qr_code）
+ * 弹窗只读 out_trade_no、expires_at、status、pay_url?、qr_code?，其它字段忽略。
+ */
+export interface PaymentModalOrder {
+  out_trade_no: string
+  expires_at: string
+  status: string
+  pay_url?: string
+  qr_code?: string
+}
 
 const props = defineProps<{
   open: boolean
-  order: CreateOrderResult | null
+  order: PaymentModalOrder | null
 }>()
 
 const emit = defineEmits<{

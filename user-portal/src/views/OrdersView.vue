@@ -9,11 +9,14 @@ import Pagination from '@/components/ui/Pagination.vue'
 import Modal from '@/components/ui/Modal.vue'
 import OrderTable from '@/components/orders/OrderTable.vue'
 import OrderDetailModal from '@/components/orders/OrderDetailModal.vue'
+import PaymentResultModal from '@/components/payment/PaymentResultModal.vue'
 import { useOrders } from '@/composables/useOrders'
+import { useAuthStore } from '@/stores/auth'
 import { formatBalance, formatDateMinute, orderStatusMeta } from '@/utils/format'
 import type { PaymentOrder } from '@/api/types'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const { rows, total, page, pageSize, statusFilter, search, loading, error, loaded, load, setPage, cancel } = useOrders()
 
 // 状态 chip 标签
@@ -99,10 +102,23 @@ async function confirmCancel() {
   }
 }
 
-// === 立即支付 / 重新下单 ===
+// === 立即支付弹窗 ===
+const payOpen = ref(false)
+const payOrder = ref<PaymentOrder | null>(null)
+const paySuccessNote = ref(false)
+
 function handlePay(order: PaymentOrder) {
-  // Task 13 会接入真正的支付弹窗，此处先跳充值页占位
-  router.push({ path: '/recharge', query: { order_id: String(order.id) } })
+  payOrder.value = order
+  payOpen.value = true
+}
+
+async function handlePaid() {
+  payOpen.value = false
+  // 刷新订单列表 + 余额
+  await Promise.all([load(), authStore.fetchUser()])
+  // 短暂提示
+  paySuccessNote.value = true
+  setTimeout(() => { paySuccessNote.value = false }, 3000)
 }
 
 function handleReorder() {
@@ -245,6 +261,22 @@ onMounted(load)
         />
       </div>
     </template>
+
+    <!-- 支付成功提示 -->
+    <div
+      v-if="paySuccessNote"
+      class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-pos px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(14,158,114,.35)]"
+    >
+      支付成功，余额已更新 ✓
+    </div>
+
+    <!-- 立即支付弹窗 -->
+    <PaymentResultModal
+      :open="payOpen"
+      :order="payOrder"
+      @close="payOpen = false"
+      @paid="handlePaid"
+    />
 
     <!-- 订单详情弹窗 -->
     <OrderDetailModal
