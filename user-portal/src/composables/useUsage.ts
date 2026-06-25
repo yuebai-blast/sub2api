@@ -37,7 +37,7 @@ export function useUsage() {
     error.value = null
     try {
       const [res, s] = await Promise.all([queryUsage(params()), getDashboardStats()])
-      rows.value = res.data
+      rows.value = res.items
       total.value = res.total
       stats.value = s
       loaded.value = true
@@ -50,7 +50,7 @@ export function useUsage() {
 
   async function loadKeys() {
     try {
-      keys.value = (await listKeys(1, 100)).data
+      keys.value = (await listKeys(1, 100)).items
     } catch {
       keys.value = []
     }
@@ -62,7 +62,7 @@ export function useUsage() {
   }
 
   async function fetchForExport(): Promise<UsageLog[]> {
-    return (await queryUsage(params(1000))).data
+    return (await queryUsage(params(1000))).items
   }
 
   return {

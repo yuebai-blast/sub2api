@@ -49,7 +49,7 @@ export function useDashboard() {
       // 最近使用记录单独加载，失败不影响主体
       try {
         const r = await getRecentUsage(startDate.value, endDate.value, 5)
-        recent.value = r.data || []
+        recent.value = r.items || []
       } catch {
         recent.value = []
       }

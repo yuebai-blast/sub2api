@@ -28,12 +28,12 @@ export function useKeys() {
         status: filters.status || undefined,
         group_id: filters.group_id || undefined
       })
-      rows.value = res.data
+      rows.value = res.items
       total.value = res.total
       loaded.value = true
       // 批量用量（非关键，失败不阻断）
       try {
-        usage.value = await keysApi.getKeysUsage(res.data.map((k) => k.id))
+        usage.value = await keysApi.getKeysUsage(res.items.map((k) => k.id))
       } catch {
         usage.value = {}
       }

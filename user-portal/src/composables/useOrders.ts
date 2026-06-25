@@ -22,7 +22,7 @@ export function useOrders() {
         page_size: pageSize.value,
         status: statusFilter.value || undefined
       })
-      rows.value = res.data
+      rows.value = res.items
       total.value = res.total
       loaded.value = true
     } catch (e) {

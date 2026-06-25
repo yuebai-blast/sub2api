@@ -340,9 +340,11 @@ export interface UsageLog {
   api_key?: { id: number; name: string; key: string }
 }
 
+// 对应后端 response.PaginatedData：数组键为 items（勿改为 data）
 export interface PaginatedResponse<T> {
-  data: T[]
+  items: T[]
   total: number
   page: number
   page_size: number
+  pages?: number
 }

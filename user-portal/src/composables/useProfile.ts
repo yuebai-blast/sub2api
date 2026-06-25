@@ -35,7 +35,7 @@ export function useProfile() {
   }
 
   async function bind(provider: string) {
-    const { authorize_url } = await startBind({ provider, redirect_to: '/profile' })
+    const { authorize_url } = await startBind({ provider, redirect_to: window.location.origin + '/profile' })
     window.location.href = authorize_url
   }
 
