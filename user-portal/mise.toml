@@ -1,8 +1,0 @@
-# user-portal 组件级便捷 task；工具链版本统一由仓库根 mise.toml 提供
-[tasks.dev]
-description = "启动开发服务器（端口 5174，/api 代理到后端）"
-run = "pnpm dev"
-
-[tasks.build]
-description = "类型检查 + 生产构建"
-run = "pnpm build"

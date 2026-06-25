@@ -51,6 +51,18 @@ fi
 exec ./bin/server
 '''
 
+[tasks.user-portal]
+description = "启动 user-portal 开发服务器（端口 5174，/api 代理到后端）"
+depends = ["install-user-portal"]
+dir = "user-portal"
+run = "pnpm dev"
+
+[tasks.user-portal-build]
+description = "user-portal 类型检查 + 生产构建到 dist/"
+depends = ["install-user-portal"]
+dir = "user-portal"
+run = "pnpm build"
+
 # ---------- 代码生成 ----------
 [tasks.generate]
 description = "重新生成 Ent ORM 与 Wire 注入代码（改 schema/wire 后必跑，生成物要提交）"
