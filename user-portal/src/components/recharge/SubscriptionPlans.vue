@@ -11,14 +11,22 @@ const emit = defineEmits<{
   subscribe: [plan: SubscriptionPlan]
 }>()
 
-/** 判断某计划是否有原价（原价 > 现价时才显示划线） */
-function hasDiscount(plan: SubscriptionPlan): boolean {
-  return typeof plan.original_price === 'number' && plan.original_price > plan.price
+interface LimitLine {
+  label: string
+  value: string
+}
+
+interface PlanCard {
+  plan: SubscriptionPlan
+  /** 原价 > 现价时显示划线 */
+  hasDiscount: boolean
+  /** 仅含后端有值的额度限制行（每张卡只计算一次） */
+  limitLines: LimitLine[]
 }
 
 /** 额度限制行：只展示后端有值的那几行 */
-function limitLines(plan: SubscriptionPlan): { label: string; value: string }[] {
-  const lines: { label: string; value: string }[] = []
+function buildLimitLines(plan: SubscriptionPlan): LimitLine[] {
+  const lines: LimitLine[] = []
   if (typeof plan.daily_limit_usd === 'number') {
     lines.push({ label: '日额度', value: `$${formatBalance(plan.daily_limit_usd)}` })
   }
@@ -30,6 +38,15 @@ function limitLines(plan: SubscriptionPlan): { label: string; value: string }[] 
   }
   return lines
 }
+
+// 每张卡的派生数据预计算一次，模板只读不再重复计算
+const cards = computed<PlanCard[]>(() =>
+  props.plans.map((plan) => ({
+    plan,
+    hasDiscount: typeof plan.original_price === 'number' && plan.original_price > plan.price,
+    limitLines: buildLimitLines(plan)
+  }))
+)
 
 const isEmpty = computed(() => props.plans.length === 0)
 </script>
@@ -81,7 +98,7 @@ const isEmpty = computed(() => props.plans.length === 0)
     class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
   >
     <div
-      v-for="plan in plans"
+      v-for="{ plan, hasDiscount, limitLines } in cards"
       :key="plan.id"
       class="flex flex-col rounded-[20px] bg-card p-[24px_26px] shadow-card transition-shadow duration-150 hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)]"
     >
@@ -107,7 +124,7 @@ const isEmpty = computed(() => props.plans.length === 0)
           ${{ formatBalance(plan.price) }}
         </span>
         <span
-          v-if="hasDiscount(plan)"
+          v-if="hasDiscount"
           class="text-sm text-faint line-through"
         >
           ${{ formatBalance(plan.original_price!) }}
@@ -134,11 +151,11 @@ const isEmpty = computed(() => props.plans.length === 0)
 
       <!-- 额度限制 -->
       <div
-        v-if="limitLines(plan).length"
+        v-if="limitLines.length"
         class="mb-4 flex flex-col gap-1.5 text-[13px]"
       >
         <div
-          v-for="line in limitLines(plan)"
+          v-for="line in limitLines"
           :key="line.label"
           class="flex items-center justify-between rounded-xl border border-dashed border-border2 px-3 py-1.5"
         >

@@ -321,15 +321,7 @@ onMounted(async () => {
 
       <!-- ============ 订阅 tab ============ -->
       <template v-else-if="activeTab === 1">
-        <!-- 支付方式选择（复用充值的 method） -->
-        <div class="mb-6">
-          <PayMethodPicker
-            v-model="method"
-            :methods="checkout.methods"
-          />
-        </div>
-
-        <!-- 套餐卡片 -->
+        <!-- 套餐卡片（点击选择后在确认弹窗内选支付方式） -->
         <SubscriptionPlans
           :plans="plans"
           @subscribe="onSubscribe"
@@ -368,10 +360,13 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- 支付方式提示 -->
-        <p class="mb-2 text-[13px] text-subtle">
-          支付方式已选：<span class="font-medium text-text2">{{ method || '未选择' }}</span>
-        </p>
+        <!-- 支付方式选择（弹窗内即可挑选/切换，绑定共享 method） -->
+        <div class="mb-4">
+          <PayMethodPicker
+            v-model="method"
+            :methods="checkout!.methods"
+          />
+        </div>
 
         <!-- 错误提示 -->
         <p
