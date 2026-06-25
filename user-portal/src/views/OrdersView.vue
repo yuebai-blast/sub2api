@@ -76,21 +76,26 @@ function closeDetail() {
 const cancelOpen = ref(false)
 const cancelTarget = ref<PaymentOrder | null>(null)
 const cancelLoading = ref(false)
+const cancelError = ref<string | null>(null)
 
 function promptCancel(order: PaymentOrder) {
   cancelTarget.value = order
+  cancelError.value = null
   cancelOpen.value = true
 }
 
 async function confirmCancel() {
   if (!cancelTarget.value) return
   cancelLoading.value = true
+  cancelError.value = null
   try {
     await cancel(cancelTarget.value.id)
-  } finally {
-    cancelLoading.value = false
     cancelOpen.value = false
     cancelTarget.value = null
+  } catch (e) {
+    cancelError.value = (e as { message?: string }).message || '取消订单失败，请重试'
+  } finally {
+    cancelLoading.value = false
   }
 }
 
@@ -213,6 +218,12 @@ onMounted(load)
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card py-[11px] pl-10 pr-4 text-sm text-text outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
             placeholder="搜索订单编号…"
           >
+          <p
+            v-if="search.trim()"
+            class="absolute mt-1.5 text-[11px] text-subtle"
+          >
+            搜索仅过滤当前页
+          </p>
         </div>
       </div>
 
@@ -226,6 +237,7 @@ onMounted(load)
           @reorder="handleReorder"
         />
         <Pagination
+          v-if="!search.trim()"
           :page="page"
           :page-size="pageSize"
           :total="total"
@@ -251,6 +263,12 @@ onMounted(load)
         确定要取消订单
         <span class="font-medium text-text">{{ cancelTarget?.out_trade_no }}</span>
         吗？该操作无法撤销。
+      </p>
+      <p
+        v-if="cancelError"
+        class="mt-3 text-[13px] text-neg"
+      >
+        {{ cancelError }}
       </p>
       <template #footer>
         <button

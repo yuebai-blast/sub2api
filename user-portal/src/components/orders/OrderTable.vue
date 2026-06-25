@@ -12,18 +12,18 @@ const emit = defineEmits<{
   reorder: [order: PaymentOrder]
 }>()
 
-function paymentDot(type: string): string {
-  const t = type.toLowerCase()
+function paymentDot(type: string | null | undefined): string {
+  const t = (type ?? '').toLowerCase()
   if (t.includes('wxpay') || t.includes('wechat') || t.includes('wx')) return 'bg-[#09BB07]'
   if (t.includes('alipay') || t.includes('ali')) return 'bg-[#1677FF]'
   return 'bg-text'
 }
 
-function paymentLabel(type: string): string {
-  const t = type.toLowerCase()
+function paymentLabel(type: string | null | undefined): string {
+  const t = (type ?? '').toLowerCase()
   if (t.includes('wxpay') || t.includes('wechat') || t.includes('wx')) return '微信支付'
   if (t.includes('alipay') || t.includes('ali')) return '支付宝'
-  return type
+  return type || '—'
 }
 
 function orderKind(orderType: string): string {
@@ -59,7 +59,7 @@ function orderKind(orderType: string): string {
   <div
     v-for="row in rows"
     :key="row.id"
-    class="grid gap-4 border-b border-[#F4F2EB] px-[26px] py-5 transition-colors hover:bg-hover"
+    class="grid gap-4 border-b border-rowline px-[26px] py-5 transition-colors hover:bg-hover"
     style="grid-template-columns: 1.5fr 1fr 0.9fr 1.1fr 1.3fr 1.2fr; align-items: center"
   >
     <!-- 订单编号 -->

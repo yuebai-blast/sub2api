@@ -49,7 +49,10 @@ function orderKind(orderType: string): string {
           <span class="text-[13px] text-text3">创建时间</span>
           <span class="text-[13px] text-text">{{ formatDateMinute(order.created_at) }}</span>
         </div>
-        <div class="flex items-center justify-between gap-4">
+        <div
+          v-if="order.expires_at"
+          class="flex items-center justify-between gap-4"
+        >
           <span class="text-[13px] text-text3">到期时间</span>
           <span class="text-[13px] text-text">{{ formatDateMinute(order.expires_at) }}</span>
         </div>
