@@ -1,0 +1,94 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { redeem } from '@/api/redeem'
+import type { RedeemResult } from '@/api/types'
+import { formatBalance } from '@/utils/format'
+
+const emit = defineEmits<{
+  /** 兑换成功后，通知父组件刷新余额 */
+  redeemed: []
+}>()
+
+const code = ref('')
+const submitting = ref(false)
+const result = ref<RedeemResult | null>(null)
+const errorMsg = ref('')
+
+async function handleRedeem() {
+  const trimmed = code.value.trim()
+  if (!trimmed) return
+  submitting.value = true
+  result.value = null
+  errorMsg.value = ''
+  try {
+    const res = await redeem(trimmed)
+    result.value = res
+    code.value = ''
+    emit('redeemed')
+  } catch (e) {
+    errorMsg.value = (e as { message?: string }).message || '兑换失败，请检查兑换码是否正确'
+  } finally {
+    submitting.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="rounded-[20px] bg-card p-[24px_26px] shadow-card">
+    <!-- 标题 -->
+    <div class="mb-[18px] text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
+      兑换码
+    </div>
+
+    <!-- 输入行 -->
+    <div class="flex gap-2">
+      <input
+        v-model="code"
+        class="min-w-0 flex-1 rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-[border-color] placeholder:text-faint focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
+        placeholder="输入兑换码"
+        :disabled="submitting"
+        @keydown.enter="handleRedeem"
+      >
+      <button
+        class="flex-none rounded-xl2 bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
+        :disabled="submitting || !code.trim()"
+        @click="handleRedeem"
+      >
+        {{ submitting ? '兑换中…' : '兑换' }}
+      </button>
+    </div>
+
+    <!-- 成功结果 -->
+    <div
+      v-if="result"
+      class="mt-3 rounded-xl2 border border-pos/30 bg-pos/[0.06] px-4 py-3 text-sm"
+    >
+      <p class="font-semibold text-pos">
+        兑换成功！
+      </p>
+      <p class="mt-1 text-text3">
+        {{ result.message }}
+      </p>
+      <div
+        v-if="result.new_balance !== undefined"
+        class="mt-2 text-text3"
+      >
+        新余额：<span class="font-semibold text-text">${{ formatBalance(result.new_balance) }}</span>
+      </div>
+      <div
+        v-if="result.new_concurrency !== undefined"
+        class="mt-1 text-text3"
+      >
+        并发数：<span class="font-semibold text-text">{{ result.new_concurrency }}</span>
+      </div>
+    </div>
+
+    <!-- 错误结果 -->
+    <div
+      v-if="errorMsg"
+      class="mt-3 rounded-xl2 border border-neg/30 bg-neg/[0.06] px-4 py-3 text-sm text-neg"
+    >
+      {{ errorMsg }}
+    </div>
+  </div>
+</template>

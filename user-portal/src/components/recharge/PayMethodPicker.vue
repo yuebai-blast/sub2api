@@ -1,0 +1,145 @@
+<script setup lang="ts">
+import type { MethodLimit } from '@/api/types'
+
+const props = defineProps<{
+  /** 后端返回的可用支付方式 key → limits */
+  methods: Record<string, MethodLimit>
+  /** 当前选中（v-model） */
+  modelValue: string
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+// 支付方式配置（只渲染 methods 中存在的项）
+const METHOD_CONFIG: Record<string, { label: string; desc: string; color: string; iconType: 'wechat' | 'alipay' | 'stripe' }> = {
+  wxpay: { label: '微信支付', desc: '扫码即时到账', color: '#09BB07', iconType: 'wechat' },
+  alipay: { label: '支付宝', desc: '扫码即时到账', color: '#1677FF', iconType: 'alipay' },
+  stripe: { label: '信用卡 / Stripe', desc: 'Visa · 万事达 · 美国运通', color: '#635BFF', iconType: 'stripe' }
+}
+
+// 只展示后端实际返回的支付方式，按 METHOD_CONFIG 顺序排
+const availableMethods = Object.keys(METHOD_CONFIG).filter((k) => k in props.methods)
+
+function pick(key: string) {
+  emit('update:modelValue', key)
+}
+</script>
+
+<template>
+  <div class="rounded-[20px] bg-card p-[28px_30px] shadow-card">
+    <!-- 标题 -->
+    <div class="mb-[18px] flex items-baseline justify-between">
+      <h3 class="font-serif text-xl font-medium text-text">
+        支付方式
+      </h3>
+      <span class="inline-flex items-center gap-1.5 text-xs text-subtle">
+        由
+        <span class="text-[13px] font-semibold text-[#635BFF]">Stripe</span>
+        安全处理
+      </span>
+    </div>
+
+    <!-- 方式列表 -->
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div
+        v-for="key in availableMethods"
+        :key="key"
+        class="flex cursor-pointer items-center gap-3 rounded-xl2 border-[1.5px] px-[18px] py-4 transition-[border-color,background] duration-[140ms]"
+        :class="
+          modelValue === key
+            ? 'border-accent bg-accent/[0.06]'
+            : 'border-border2 bg-card hover:border-[#9FE6CD]'
+        "
+        @click="pick(key)"
+      >
+        <!-- 品牌图标 -->
+        <span
+          class="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px]"
+          :style="{ background: METHOD_CONFIG[key].color }"
+        >
+          <!-- 微信 -->
+          <svg
+            v-if="METHOD_CONFIG[key].iconType === 'wechat'"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="#fff"
+          >
+            <path d="M9 4C4.6 4 1 7 1 10.7c0 2.1 1.2 4 3 5.2l-.7 2.2 2.6-1.4c.9.3 1.9.4 2.9.4h.6a5.6 5.6 0 0 1-.2-1.5c0-3.4 3.3-6.1 7.3-6.1h.7C16.8 6.3 13.3 4 9 4Zm-2.7 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm5.4 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z" />
+            <path d="M23 15.5c0-3-3-5.5-6.7-5.5S9.6 12.5 9.6 15.5 12.6 21 16.3 21c.8 0 1.6-.1 2.3-.4l2.1 1.2-.6-1.8c1.4-1 2.9-2.6 2.9-4.5Zm-9-1a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Zm4.6 0a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Z" />
+          </svg>
+
+          <!-- 支付宝 -->
+          <span
+            v-else-if="METHOD_CONFIG[key].iconType === 'alipay'"
+            class="text-base font-bold text-white"
+          >支</span>
+
+          <!-- Stripe -->
+          <svg
+            v-else-if="METHOD_CONFIG[key].iconType === 'stripe'"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect
+              x="2"
+              y="5"
+              width="20"
+              height="14"
+              rx="2.5"
+            />
+            <path d="M2 10h20" />
+          </svg>
+        </span>
+
+        <!-- 文字 -->
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-semibold text-text">
+            {{ METHOD_CONFIG[key].label }}
+          </div>
+          <div class="mt-0.5 text-xs text-subtle">
+            {{ METHOD_CONFIG[key].desc }}
+          </div>
+        </div>
+
+        <!-- 选中标记 -->
+        <span
+          class="h-[18px] w-[18px] flex-none rounded-full transition-[background,box-shadow] duration-[140ms]"
+          :class="
+            modelValue === key
+              ? 'bg-accent shadow-[inset_0_0_0_3px_#fff,0_0_0_1px_#14C28A]'
+              : 'bg-card shadow-[inset_0_0_0_1.5px_#D8D5CC]'
+          "
+        />
+      </div>
+    </div>
+
+    <!-- 安全提示 -->
+    <div
+      class="mt-4 flex items-center gap-2 border-t border-dashed border-border2 pt-4 text-xs leading-relaxed text-subtle"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#635BFF"
+        stroke-width="2"
+        class="flex-none"
+      >
+        <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
+      </svg>
+      微信支付与支付宝均通过
+      <span class="font-semibold text-[#635BFF]">Stripe</span>
+      安全处理，到账与额度一致。
+    </div>
+  </div>
+</template>

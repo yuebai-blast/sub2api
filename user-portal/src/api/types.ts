@@ -195,14 +195,33 @@ export interface CreateOrderRequest {
 }
 
 /**
- * 下单返回。pay_url / qr_code / result_type 等支付引导字段以后端 create-order
- * handler 实际返回为准——实现 Task 11 前先读 backend payment handler 的响应 DTO，
- * 缺哪个补哪个，不要凭此处猜测发请求。
+ * 下单返回。字段与后端 CreateOrderResponse 对齐。
+ * 后端 DTO：backend/internal/service/payment_service.go → CreateOrderResponse
  */
-export interface CreateOrderResult extends PaymentOrder {
-  pay_url?: string
-  qr_code?: string
+export interface CreateOrderResult {
+  /** 订单 ID */
+  order_id: number
+  amount: number
+  pay_amount: number
+  fee_rate: number
+  /** 订单状态（初始为 pending） */
+  status: string
+  /** 结果类型：order_created / jsapi_ready / oauth_required 等 */
   result_type?: string
+  payment_type: string
+  out_trade_no: string
+  /** 跳转支付 URL（stripe / alipay H5 等） */
+  pay_url?: string
+  /** 二维码内容（微信扫码 / 支付宝 PC） */
+  qr_code?: string
+  client_secret?: string
+  intent_id?: string
+  currency?: string
+  country_code?: string
+  payment_env?: string
+  expires_at: string
+  payment_mode?: string
+  resume_token?: string
 }
 
 // ==================== OAuth 绑定 ====================
