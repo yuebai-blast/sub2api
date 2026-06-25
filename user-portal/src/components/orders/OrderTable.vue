@@ -1,0 +1,137 @@
+<script setup lang="ts">
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { orderStatusMeta, formatCNY, formatBalance, formatDateMinute } from '@/utils/format'
+import type { PaymentOrder } from '@/api/types'
+
+defineProps<{ rows: PaymentOrder[] }>()
+
+const emit = defineEmits<{
+  view: [order: PaymentOrder]
+  pay: [order: PaymentOrder]
+  cancel: [order: PaymentOrder]
+  reorder: [order: PaymentOrder]
+}>()
+
+function paymentDot(type: string): string {
+  const t = type.toLowerCase()
+  if (t.includes('wxpay') || t.includes('wechat') || t.includes('wx')) return 'bg-[#09BB07]'
+  if (t.includes('alipay') || t.includes('ali')) return 'bg-[#1677FF]'
+  return 'bg-text'
+}
+
+function paymentLabel(type: string): string {
+  const t = type.toLowerCase()
+  if (t.includes('wxpay') || t.includes('wechat') || t.includes('wx')) return '微信支付'
+  if (t.includes('alipay') || t.includes('ali')) return '支付宝'
+  return type
+}
+
+function orderKind(orderType: string): string {
+  return orderType === 'balance' ? '账户充值' : '订阅'
+}
+</script>
+
+<template>
+  <!-- 表头 -->
+  <div
+    class="grid gap-4 border-b border-track px-[26px] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint"
+    style="grid-template-columns: 1.5fr 1fr 0.9fr 1.1fr 1.3fr 1.2fr"
+  >
+    <div>订单编号</div>
+    <div>实付</div>
+    <div>支付方式</div>
+    <div>状态</div>
+    <div>创建时间</div>
+    <div class="text-right">
+      操作
+    </div>
+  </div>
+
+  <!-- 空状态 -->
+  <div
+    v-if="rows.length === 0"
+    class="px-[26px] py-16 text-center text-sm text-subtle"
+  >
+    暂无订单记录
+  </div>
+
+  <!-- 数据行 -->
+  <div
+    v-for="row in rows"
+    :key="row.id"
+    class="grid gap-4 border-b border-[#F4F2EB] px-[26px] py-5 transition-colors hover:bg-hover"
+    style="grid-template-columns: 1.5fr 1fr 0.9fr 1.1fr 1.3fr 1.2fr; align-items: center"
+  >
+    <!-- 订单编号 -->
+    <div>
+      <div class="mb-[5px] text-[14px] font-semibold text-text">
+        {{ row.out_trade_no }}
+      </div>
+      <div class="text-[11px] font-medium text-subtle">
+        {{ orderKind(row.order_type) }} · ID {{ row.id }}
+      </div>
+    </div>
+
+    <!-- 实付 -->
+    <div>
+      <div class="font-serif text-[15px] font-semibold text-text">
+        ¥{{ formatCNY(row.pay_amount) }}
+      </div>
+      <div class="mt-0.5 text-[11px] text-subtle">
+        ${{ formatBalance(row.amount) }}
+      </div>
+    </div>
+
+    <!-- 支付方式 -->
+    <div>
+      <span class="inline-flex items-center gap-1.5 text-[13px] font-medium text-text">
+        <span
+          class="h-2 w-2 rounded-[2px]"
+          :class="paymentDot(row.payment_type)"
+        />
+        {{ paymentLabel(row.payment_type) }}
+      </span>
+    </div>
+
+    <!-- 状态 -->
+    <div>
+      <StatusBadge v-bind="orderStatusMeta(row.status)" />
+    </div>
+
+    <!-- 创建时间 -->
+    <div class="text-[13px] text-text3">
+      {{ formatDateMinute(row.created_at) }}
+    </div>
+
+    <!-- 操作 -->
+    <div class="flex flex-wrap justify-end gap-0.5">
+      <button
+        class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
+        @click="emit('view', row)"
+      >
+        查看
+      </button>
+      <button
+        v-if="row.status === 'pending'"
+        class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-accent transition-colors hover:bg-muted"
+        @click="emit('pay', row)"
+      >
+        立即支付
+      </button>
+      <button
+        v-if="row.status === 'pending'"
+        class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
+        @click="emit('cancel', row)"
+      >
+        取消
+      </button>
+      <button
+        v-if="row.status === 'failed' || row.status === 'refunded'"
+        class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-accent transition-colors hover:bg-muted"
+        @click="emit('reorder', row)"
+      >
+        重新下单
+      </button>
+    </div>
+  </div>
+</template>

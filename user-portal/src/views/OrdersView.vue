@@ -1,18 +1,273 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import PortalLayout from '@/layouts/PortalLayout.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import StatCard from '@/components/ui/StatCard.vue'
+import Pagination from '@/components/ui/Pagination.vue'
+import Modal from '@/components/ui/Modal.vue'
+import OrderTable from '@/components/orders/OrderTable.vue'
+import OrderDetailModal from '@/components/orders/OrderDetailModal.vue'
+import { useOrders } from '@/composables/useOrders'
+import { formatBalance, formatDateMinute, orderStatusMeta } from '@/utils/format'
+import type { PaymentOrder } from '@/api/types'
+
+const router = useRouter()
+const { rows, total, page, pageSize, statusFilter, search, loading, error, loaded, load, setPage, cancel } = useOrders()
+
+// 状态 chip 标签
+const tabs = [
+  { label: '全部', value: '' },
+  { label: '待支付', value: 'pending' },
+  { label: '已支付', value: 'paid' },
+  { label: '已完成', value: 'completed' },
+  { label: '已退款', value: 'refunded' },
+]
+
+// 切换 tab 时重置分页
+function pickTab(value: string) {
+  statusFilter.value = value
+  page.value = 1
+  load()
+}
+
+// 前端搜索过滤（按 out_trade_no）
+const filteredRows = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return rows.value
+  return rows.value.filter(r => r.out_trade_no.toLowerCase().includes(q))
+})
+
+// === StatCard 派生数据 ===
+const paidCount = computed(() => rows.value.filter(r => r.status === 'paid' || r.status === 'completed').length)
+const pendingCount = computed(() => rows.value.filter(r => r.status === 'pending').length)
+
+const totalRecharge = computed(() => {
+  return rows.value
+    .filter(r => r.status === 'completed')
+    .reduce((sum, r) => sum + r.amount, 0)
+})
+
+const latestOrder = computed(() => rows.value[0] ?? null)
+
+const statTotalHint = computed(() => `${paidCount.value} 笔已支付 · ${pendingCount.value} 笔待支付`)
+const statLatestValue = computed(() => {
+  if (!latestOrder.value) return '—'
+  const meta = orderStatusMeta(latestOrder.value.status)
+  return `$${formatBalance(latestOrder.value.amount)} · ${meta.label}`
+})
+const statLatestHint = computed(() => (latestOrder.value ? formatDateMinute(latestOrder.value.created_at) : ''))
+
+// === 详情弹窗 ===
+const detailOpen = ref(false)
+const detailOrder = ref<PaymentOrder | null>(null)
+
+function openDetail(order: PaymentOrder) {
+  detailOrder.value = order
+  detailOpen.value = true
+}
+
+function closeDetail() {
+  detailOpen.value = false
+}
+
+// === 取消确认弹窗 ===
+const cancelOpen = ref(false)
+const cancelTarget = ref<PaymentOrder | null>(null)
+const cancelLoading = ref(false)
+
+function promptCancel(order: PaymentOrder) {
+  cancelTarget.value = order
+  cancelOpen.value = true
+}
+
+async function confirmCancel() {
+  if (!cancelTarget.value) return
+  cancelLoading.value = true
+  try {
+    await cancel(cancelTarget.value.id)
+  } finally {
+    cancelLoading.value = false
+    cancelOpen.value = false
+    cancelTarget.value = null
+  }
+}
+
+// === 立即支付 / 重新下单 ===
+function handlePay(order: PaymentOrder) {
+  // Task 13 会接入真正的支付弹窗，此处先跳充值页占位
+  router.push({ path: '/recharge', query: { order_id: String(order.id) } })
+}
+
+function handleReorder() {
+  router.push('/recharge')
+}
+
+onMounted(load)
 </script>
 
 <template>
   <PortalLayout>
-    <div class="mb-[34px]">
-      <h1 class="mb-2 font-serif text-4xl font-medium tracking-tight text-text">
-        我的订单
-      </h1>
+    <!-- 页头 -->
+    <PageHeader
+      title="我的订单"
+      subtitle="查看所有充值与订阅订单记录。"
+    >
+      <template #actions>
+        <button
+          class="rounded-full bg-card px-4 py-[11px] text-[13px] font-medium text-text2 shadow-pill transition-colors hover:text-text"
+          :disabled="loading"
+          @click="load"
+        >
+          ↻ 刷新
+        </button>
+        <button
+          class="rounded-full bg-accent px-[22px] py-[11px] text-[14px] font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90"
+          @click="router.push('/recharge')"
+        >
+          + 返回充值
+        </button>
+      </template>
+    </PageHeader>
+
+    <!-- 加载态（首次） -->
+    <div
+      v-if="loading && !loaded"
+      class="flex items-center justify-center py-24"
+    >
+      <LoadingSpinner :size="32" />
     </div>
-    <div class="rounded-xl3 border border-dashed border-border2 bg-card px-7 py-20 text-center">
+
+    <!-- 错误态（首次） -->
+    <div
+      v-else-if="error && !loaded"
+      class="rounded-xl3 border border-dashed border-border2 bg-card px-7 py-16 text-center"
+    >
       <p class="text-sm text-subtle">
-        该页面即将上线。
+        {{ error }}
       </p>
+      <button
+        class="mt-4 rounded-full border border-border px-5 py-2 text-sm font-semibold text-text"
+        @click="load"
+      >
+        重试
+      </button>
     </div>
+
+    <template v-else>
+      <!-- StatCard 统计行 -->
+      <div class="mb-[22px] grid grid-cols-1 gap-[18px] sm:grid-cols-3">
+        <StatCard
+          label="订单总数"
+          :value="String(total)"
+          :hint="statTotalHint"
+        />
+        <StatCard
+          label="累计充值"
+          :value="`$${formatBalance(totalRecharge)}`"
+          hint="已完成订单合计"
+        />
+        <StatCard
+          label="最近订单"
+          :value="statLatestValue"
+          :hint="statLatestHint"
+        />
+      </div>
+
+      <!-- 筛选栏 -->
+      <div class="mb-4 flex items-center gap-3">
+        <!-- 状态 chip 组 -->
+        <div class="inline-flex gap-0.5 rounded-full bg-track p-1">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="rounded-full px-[15px] py-2 text-[13px] font-medium text-text3 transition-colors hover:text-text"
+            :class="statusFilter === tab.value ? 'bg-card font-semibold text-text shadow-pill' : ''"
+            @click="pickTab(tab.value)"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="relative ml-1 max-w-[300px] flex-1">
+          <svg
+            class="absolute left-3.5 top-1/2 -translate-y-1/2 text-faint"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle
+              cx="11"
+              cy="11"
+              r="7"
+            />
+            <path d="M21 21l-4-4" />
+          </svg>
+          <input
+            v-model="search"
+            class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card py-[11px] pl-10 pr-4 text-sm text-text outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
+            placeholder="搜索订单编号…"
+          >
+        </div>
+      </div>
+
+      <!-- 表格卡片 -->
+      <div class="overflow-hidden rounded-xl3 bg-card shadow-[0_2px_12px_rgba(0,0,0,.04)]">
+        <OrderTable
+          :rows="filteredRows"
+          @view="openDetail"
+          @pay="handlePay"
+          @cancel="promptCancel"
+          @reorder="handleReorder"
+        />
+        <Pagination
+          :page="page"
+          :page-size="pageSize"
+          :total="total"
+          @update:page="setPage"
+        />
+      </div>
+    </template>
+
+    <!-- 订单详情弹窗 -->
+    <OrderDetailModal
+      :open="detailOpen"
+      :order="detailOrder"
+      @close="closeDetail"
+    />
+
+    <!-- 取消确认弹窗 -->
+    <Modal
+      :open="cancelOpen"
+      title="取消订单"
+      @close="cancelOpen = false"
+    >
+      <p class="text-sm text-text2">
+        确定要取消订单
+        <span class="font-medium text-text">{{ cancelTarget?.out_trade_no }}</span>
+        吗？该操作无法撤销。
+      </p>
+      <template #footer>
+        <button
+          class="rounded-full border border-border px-5 py-2 text-sm font-medium text-text2 transition-colors hover:bg-muted"
+          :disabled="cancelLoading"
+          @click="cancelOpen = false"
+        >
+          再想想
+        </button>
+        <button
+          class="rounded-full bg-neg px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          :disabled="cancelLoading"
+          @click="confirmCancel"
+        >
+          {{ cancelLoading ? '取消中…' : '确认取消' }}
+        </button>
+      </template>
+    </Modal>
   </PortalLayout>
 </template>
