@@ -26,6 +26,9 @@ let countdownTimer: number | null = null
 // 轮询定时器
 let pollTimer: number | null = null
 
+// 防止弹窗关闭后飞行中的 verify 回调仍触发 emit('paid') 或状态变更
+let aborted = false
+
 // 生成 QR 码图片 URL（使用 qrserver.com 公共 API 渲染）
 const qrImageUrl = computed(() => {
   const qr = props.order?.qr_code ?? ''
@@ -83,12 +86,14 @@ function startCountdown() {
 async function doVerify(outTradeNo: string) {
   try {
     const o = await verifyOrder(outTradeNo)
+    // 弹窗已关闭或组件已卸载，丢弃本次结果
+    if (aborted) return
     status.value = o.status
     if (o.status === 'paid' || o.status === 'completed') {
       stopPoll()
       stopCountdown()
       emit('paid')
-    } else if (o.status === 'failed') {
+    } else if (o.status === 'failed' || o.status === 'refunded') {
       stopPoll()
       stopCountdown()
     }
@@ -121,6 +126,8 @@ watch(
   () => props.open,
   (v) => {
     if (v && props.order) {
+      // 重新打开时重置 aborted 标志，允许新一轮 verify 更新状态
+      aborted = false
       status.value = props.order.status || 'pending'
       errMsg.value = ''
 
@@ -136,6 +143,8 @@ watch(
         startPoll(props.order.out_trade_no)
       }
     } else {
+      // 弹窗关闭：标记 aborted，防止飞行中的 verify 回调触发副作用
+      aborted = true
       stopPoll()
       stopCountdown()
     }
@@ -143,6 +152,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  aborted = true
   stopPoll()
   stopCountdown()
 })

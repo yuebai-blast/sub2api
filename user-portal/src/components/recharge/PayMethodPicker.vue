@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { MethodLimit } from '@/api/types'
 
 const props = defineProps<{
@@ -19,8 +20,8 @@ const METHOD_CONFIG: Record<string, { label: string; desc: string; color: string
   stripe: { label: '信用卡 / Stripe', desc: 'Visa · 万事达 · 美国运通', color: '#635BFF', iconType: 'stripe' }
 }
 
-// 只展示后端实际返回的支付方式，按 METHOD_CONFIG 顺序排
-const availableMethods = Object.keys(METHOD_CONFIG).filter((k) => k in props.methods)
+// 只展示后端实际返回的支付方式，按 METHOD_CONFIG 顺序排（响应式，随 props.methods 变化）
+const availableMethods = computed(() => Object.keys(METHOD_CONFIG).filter((k) => k in props.methods))
 
 function pick(key: string) {
   emit('update:modelValue', key)

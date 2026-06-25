@@ -13,14 +13,13 @@ import { useRecharge } from '@/composables/useRecharge'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { formatBalance } from '@/utils/format'
-import { createOrder } from '@/api/payment'
 import type { CreateOrderResult } from '@/api/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 
-const { checkout, loading, error, loaded, amount, method, presets, load } = useRecharge()
+const { checkout, loading, error, loaded, amount, method, presets, load, submitRecharge } = useRecharge()
 
 // 分 tab：0 = 充值，1 = 订阅
 const activeTab = ref<0 | 1>(0)
@@ -56,11 +55,7 @@ async function handleSubmit() {
   submitError.value = ''
   successNote.value = ''
   try {
-    const result = await createOrder({
-      amount: amount.value,
-      payment_type: method.value,
-      order_type: 'balance'
-    })
+    const result = await submitRecharge()
     currentOrder.value = result
     payModalOpen.value = true
   } catch (e) {
