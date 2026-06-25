@@ -6,6 +6,7 @@ import {
   formatDuration,
   formatDateTime,
   formatReasoningEffort,
+  formatBillingType,
 } from '@/utils/format'
 
 defineProps<{ rows: UsageLog[] }>()
@@ -78,7 +79,7 @@ defineProps<{ rows: UsageLog[] }>()
         <!-- 计费 -->
         <div>
           <span class="rounded-[6px] bg-track px-2.5 py-[3px] text-[11px] font-semibold text-text3">
-            {{ row.billing_type }}
+            {{ formatBillingType(row.billing_type) }}
           </span>
         </div>
 

@@ -112,3 +112,8 @@ export function formatCNY(n: number): string {
 export function cacheHitRate(cacheRead: number, input: number): number {
   return percent(cacheRead, (input ?? 0) + (cacheRead ?? 0))
 }
+
+/** 计费类型：0=按量，1=订阅 */
+export function formatBillingType(t: number): string {
+  return t === 1 ? '订阅' : '按量'
+}

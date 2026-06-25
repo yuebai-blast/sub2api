@@ -15,6 +15,7 @@ import {
   formatDuration,
   formatDateTime,
   formatReasoningEffort,
+  formatBillingType,
   cacheHitRate,
   toLocalDate,
 } from '@/utils/format'
@@ -62,7 +63,7 @@ async function handleExport() {
     formatReasoningEffort(r.reasoning_effort),
     r.inbound_endpoint ?? '',
     r.stream ? '是' : '否',
-    String(r.billing_type),
+    formatBillingType(r.billing_type),
     r.input_tokens,
     r.output_tokens,
     r.cache_read_tokens,
@@ -74,8 +75,11 @@ async function handleExport() {
 
 // KPI 计算
 function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
-  const rate = cacheHitRate(s.total_tokens > 0 ? s.total_tokens - s.total_input_tokens - s.total_output_tokens : 0, s.total_input_tokens)
-  return `入 ${formatTokens(s.total_input_tokens)} · 出 ${formatTokens(s.total_output_tokens)} · 缓存命中 ${formatTokens(s.total_tokens - s.total_input_tokens - s.total_output_tokens)}\n命中率 ${rate.toFixed(1)}%`
+  // 注：UserDashboardStats 无 cache_read/cache_creation 独立字段，
+  // 该差值实为「缓存命中 + 缓存创建」之和，待接口扩展后再拆分展示。
+  const cacheTokens = s.total_tokens > 0 ? s.total_tokens - s.total_input_tokens - s.total_output_tokens : 0
+  const rate = cacheHitRate(cacheTokens, s.total_input_tokens)
+  return `入 ${formatTokens(s.total_input_tokens)} · 出 ${formatTokens(s.total_output_tokens)} · 缓存命中 ${formatTokens(cacheTokens)}\n命中率 ${rate.toFixed(1)}%`
 }
 </script>
 
