@@ -41,7 +41,7 @@ COPY docs/legal/ ./docs/legal/
 RUN cd frontend && pnpm run build
 
 # 编译后端（embed 内嵌前端）；VERSION 优先级：build arg > cmd/server/VERSION
-ARG VERSION=
+ARG VERSION
 ARG COMMIT=docker
 ARG DATE
 RUN cd backend && \
