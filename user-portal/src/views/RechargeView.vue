@@ -8,18 +8,21 @@ import AmountPicker from '@/components/recharge/AmountPicker.vue'
 import PayMethodPicker from '@/components/recharge/PayMethodPicker.vue'
 import OrderSummary from '@/components/recharge/OrderSummary.vue'
 import RedeemCard from '@/components/recharge/RedeemCard.vue'
+import SubscriptionPlans from '@/components/recharge/SubscriptionPlans.vue'
 import PaymentResultModal from '@/components/payment/PaymentResultModal.vue'
+import Modal from '@/components/ui/Modal.vue'
 import { useRecharge } from '@/composables/useRecharge'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
+import { getPlans } from '@/api/payment'
 import { formatBalance } from '@/utils/format'
-import type { CreateOrderResult } from '@/api/types'
+import type { CreateOrderResult, SubscriptionPlan } from '@/api/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 
-const { checkout, loading, error, loaded, amount, method, presets, load, submitRecharge } = useRecharge()
+const { checkout, loading, error, loaded, amount, method, presets, load, submitRecharge, submitSubscription } = useRecharge()
 
 // 分 tab：0 = 充值，1 = 订阅
 const activeTab = ref<0 | 1>(0)
@@ -37,6 +40,8 @@ const currentOrder = ref<CreateOrderResult | null>(null)
 
 // 成功提示
 const successNote = ref('')
+
+// ============ 充值 tab 逻辑 ============
 
 // 是否可提交（金额有效 + 支付方式已选 + 未在提交中）
 const canSubmit = computed(() => {
@@ -79,9 +84,80 @@ function handleRedeemed() {
   authStore.fetchUser()
 }
 
+// ============ 订阅 tab 逻辑 ============
+
+// 回退计划列表（checkout 里没有时单独 fetch）
+const extraPlans = ref<SubscriptionPlan[]>([])
+const extraPlansLoaded = ref(false)
+
+const plans = computed<SubscriptionPlan[]>(() => {
+  if (checkout.value && checkout.value.plans.length > 0) return checkout.value.plans
+  return extraPlans.value
+})
+
+async function ensurePlans() {
+  if (extraPlansLoaded.value) return
+  if (checkout.value && checkout.value.plans.length > 0) {
+    extraPlansLoaded.value = true
+    return
+  }
+  try {
+    extraPlans.value = await getPlans()
+  } catch {
+    // 静默失败，展示空态即可
+  } finally {
+    extraPlansLoaded.value = true
+  }
+}
+
+// 订阅确认弹窗
+const confirmOpen = ref(false)
+const selectedPlan = ref<SubscriptionPlan | null>(null)
+const subscribeError = ref('')
+const subscribing = ref(false)
+
+function onSubscribe(plan: SubscriptionPlan) {
+  selectedPlan.value = plan
+  subscribeError.value = ''
+  confirmOpen.value = true
+}
+
+function handleConfirmClose() {
+  confirmOpen.value = false
+  selectedPlan.value = null
+}
+
+async function handleConfirmSubscribe() {
+  if (!selectedPlan.value || !method.value || subscribing.value) return
+  subscribing.value = true
+  subscribeError.value = ''
+  try {
+    const result = await submitSubscription(selectedPlan.value)
+    confirmOpen.value = false
+    currentOrder.value = result
+    payModalOpen.value = true
+  } catch (e) {
+    subscribeError.value = (e as { message?: string }).message || '下单失败，请稍后重试'
+  } finally {
+    subscribing.value = false
+  }
+}
+
+async function handleSubPaid() {
+  payModalOpen.value = false
+  await authStore.fetchUser()
+  successNote.value = '订阅成功！套餐已生效。'
+}
+
+// ============ 生命周期 ============
+
 onMounted(async () => {
   await settingsStore.ensureLoaded()
   await load()
+  // 订阅 tab 显示时才预加载
+  if (showSubscription.value) {
+    await ensurePlans()
+  }
 })
 </script>
 
@@ -243,23 +319,98 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- ============ 订阅 tab（Task 12 占位） ============ -->
-      <div
-        v-else-if="activeTab === 1"
-        class="rounded-xl3 border border-dashed border-border2 bg-card px-7 py-20 text-center"
-      >
-        <p class="text-sm text-subtle">
-          订阅套餐即将上线，敬请期待。
-        </p>
-      </div>
+      <!-- ============ 订阅 tab ============ -->
+      <template v-else-if="activeTab === 1">
+        <!-- 支付方式选择（复用充值的 method） -->
+        <div class="mb-6">
+          <PayMethodPicker
+            v-model="method"
+            :methods="checkout.methods"
+          />
+        </div>
+
+        <!-- 套餐卡片 -->
+        <SubscriptionPlans
+          :plans="plans"
+          @subscribe="onSubscribe"
+        />
+      </template>
     </template>
 
-    <!-- 支付结果弹窗 -->
+    <!-- 订阅确认弹窗 -->
+    <Modal
+      :open="confirmOpen"
+      title="确认订阅"
+      @close="handleConfirmClose"
+    >
+      <template v-if="selectedPlan">
+        <!-- 套餐摘要 -->
+        <div class="mb-5 rounded-xl2 bg-muted px-5 py-4">
+          <div class="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-faint">
+            {{ selectedPlan.group_name ?? '套餐' }}
+          </div>
+          <div class="mb-3 font-serif text-xl font-medium text-text">
+            {{ selectedPlan.name }}
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="font-serif text-[28px] font-medium leading-none text-text">
+              ${{ formatBalance(selectedPlan.price) }}
+            </span>
+            <span
+              v-if="typeof selectedPlan.original_price === 'number' && selectedPlan.original_price > selectedPlan.price"
+              class="text-sm text-faint line-through"
+            >
+              ${{ formatBalance(selectedPlan.original_price) }}
+            </span>
+          </div>
+          <div class="mt-2 text-[13px] text-subtle">
+            有效期：{{ selectedPlan.validity_days }}{{ selectedPlan.validity_unit ?? '天' }}
+          </div>
+        </div>
+
+        <!-- 支付方式提示 -->
+        <p class="mb-2 text-[13px] text-subtle">
+          支付方式已选：<span class="font-medium text-text2">{{ method || '未选择' }}</span>
+        </p>
+
+        <!-- 错误提示 -->
+        <p
+          v-if="subscribeError"
+          class="mb-3 text-xs text-neg"
+        >
+          {{ subscribeError }}
+        </p>
+
+        <!-- 操作按钮 -->
+        <div class="flex gap-3">
+          <button
+            class="flex-1 rounded-xl2 border border-border2 py-3 text-sm font-medium text-text2 hover:bg-muted"
+            @click="handleConfirmClose"
+          >
+            取消
+          </button>
+          <button
+            class="flex-1 rounded-xl2 py-3 text-sm font-semibold text-white transition-[background,opacity] duration-150"
+            :class="
+              method && !subscribing
+                ? 'cursor-pointer bg-accent shadow-[0_4px_14px_rgba(20,194,138,0.28)] hover:bg-accent/90'
+                : 'cursor-not-allowed bg-accent/40'
+            "
+            :disabled="!method || subscribing"
+            @click="handleConfirmSubscribe"
+          >
+            {{ subscribing ? '下单中…' : '确认支付' }}
+          </button>
+        </div>
+      </template>
+    </Modal>
+
+    <!-- 支付结果弹窗（充值与订阅共用，paid 回调按 activeTab 区分） -->
     <PaymentResultModal
       :open="payModalOpen"
       :order="currentOrder"
       @close="handlePayModalClose"
-      @paid="handlePaid"
+      @paid="activeTab === 0 ? handlePaid() : handleSubPaid()"
     />
   </PortalLayout>
 </template>

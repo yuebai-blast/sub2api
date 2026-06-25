@@ -1,0 +1,191 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { SubscriptionPlan } from '@/api/types'
+import { formatBalance } from '@/utils/format'
+
+const props = defineProps<{
+  plans: SubscriptionPlan[]
+}>()
+
+const emit = defineEmits<{
+  subscribe: [plan: SubscriptionPlan]
+}>()
+
+/** 判断某计划是否有原价（原价 > 现价时才显示划线） */
+function hasDiscount(plan: SubscriptionPlan): boolean {
+  return typeof plan.original_price === 'number' && plan.original_price > plan.price
+}
+
+/** 额度限制行：只展示后端有值的那几行 */
+function limitLines(plan: SubscriptionPlan): { label: string; value: string }[] {
+  const lines: { label: string; value: string }[] = []
+  if (typeof plan.daily_limit_usd === 'number') {
+    lines.push({ label: '日额度', value: `$${formatBalance(plan.daily_limit_usd)}` })
+  }
+  if (typeof plan.weekly_limit_usd === 'number') {
+    lines.push({ label: '周额度', value: `$${formatBalance(plan.weekly_limit_usd)}` })
+  }
+  if (typeof plan.monthly_limit_usd === 'number') {
+    lines.push({ label: '月额度', value: `$${formatBalance(plan.monthly_limit_usd)}` })
+  }
+  return lines
+}
+
+const isEmpty = computed(() => props.plans.length === 0)
+</script>
+
+<template>
+  <!-- 空态 -->
+  <div
+    v-if="isEmpty"
+    class="rounded-xl3 border border-dashed border-border2 bg-card px-7 py-20 text-center"
+  >
+    <div class="mb-3 flex justify-center">
+      <svg
+        width="36"
+        height="36"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        class="text-faint"
+      >
+        <rect
+          x="2"
+          y="7"
+          width="20"
+          height="14"
+          rx="2.5"
+        />
+        <path d="M16 7V5a2 2 0 0 0-4 0v2" />
+        <path
+          d="M12 12v3"
+          stroke-linecap="round"
+        />
+        <circle
+          cx="12"
+          cy="16"
+          r=".5"
+          fill="currentColor"
+        />
+      </svg>
+    </div>
+    <p class="text-sm text-subtle">
+      暂无可用订阅套餐
+    </p>
+  </div>
+
+  <!-- 套餐卡片网格 -->
+  <div
+    v-else
+    class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+  >
+    <div
+      v-for="plan in plans"
+      :key="plan.id"
+      class="flex flex-col rounded-[20px] bg-card p-[24px_26px] shadow-card transition-shadow duration-150 hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)]"
+    >
+      <!-- 套餐名 -->
+      <div class="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-faint">
+        {{ plan.group_name ?? '套餐' }}
+      </div>
+      <h3 class="mb-4 font-serif text-[22px] font-medium leading-snug text-text">
+        {{ plan.name }}
+      </h3>
+
+      <!-- 描述 -->
+      <p
+        v-if="plan.description"
+        class="mb-5 text-sm leading-relaxed text-subtle"
+      >
+        {{ plan.description }}
+      </p>
+
+      <!-- 价格区域 -->
+      <div class="mb-5 flex items-baseline gap-2">
+        <span class="font-serif text-[34px] font-medium leading-none text-text">
+          ${{ formatBalance(plan.price) }}
+        </span>
+        <span
+          v-if="hasDiscount(plan)"
+          class="text-sm text-faint line-through"
+        >
+          ${{ formatBalance(plan.original_price!) }}
+        </span>
+      </div>
+
+      <!-- 元信息网格：有效期 + 倍率 -->
+      <div class="mb-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl2 bg-muted px-4 py-3 text-[13px]">
+        <div class="text-subtle">
+          有效期
+        </div>
+        <div class="font-medium text-text">
+          {{ plan.validity_days }}{{ plan.validity_unit ?? '天' }}
+        </div>
+        <template v-if="typeof plan.rate_multiplier === 'number'">
+          <div class="text-subtle">
+            倍率
+          </div>
+          <div class="font-medium text-text">
+            {{ plan.rate_multiplier }}×
+          </div>
+        </template>
+      </div>
+
+      <!-- 额度限制 -->
+      <div
+        v-if="limitLines(plan).length"
+        class="mb-4 flex flex-col gap-1.5 text-[13px]"
+      >
+        <div
+          v-for="line in limitLines(plan)"
+          :key="line.label"
+          class="flex items-center justify-between rounded-xl border border-dashed border-border2 px-3 py-1.5"
+        >
+          <span class="text-subtle">{{ line.label }}</span>
+          <span class="font-medium text-accent">{{ line.value }}</span>
+        </div>
+      </div>
+
+      <!-- 特性列表 -->
+      <ul
+        v-if="plan.features && plan.features.length"
+        class="mb-6 flex flex-col gap-1.5"
+      >
+        <li
+          v-for="(feat, idx) in plan.features"
+          :key="idx"
+          class="flex items-start gap-2 text-[13px] text-text2"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            class="mt-[2px] flex-none text-accent"
+          >
+            <path
+              d="M20 6L9 17l-5-5"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          {{ feat }}
+        </li>
+      </ul>
+
+      <!-- 弹性占位，让按钮始终在底部 -->
+      <div class="flex-1" />
+
+      <!-- 选择按钮 -->
+      <button
+        class="w-full cursor-pointer rounded-xl2 bg-accent py-[13px] text-[14px] font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,0.28)] transition-[background,box-shadow,opacity] duration-150 hover:bg-accent/90"
+        @click="emit('subscribe', plan)"
+      >
+        选择此套餐
+      </button>
+    </div>
+  </div>
+</template>

@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { getCheckoutInfo, createOrder, verifyOrder } from '@/api/payment'
 import { redeem as redeemApi } from '@/api/redeem'
-import type { CheckoutInfoResponse, CreateOrderResult, RedeemResult } from '@/api/types'
+import type { CheckoutInfoResponse, CreateOrderResult, RedeemResult, SubscriptionPlan } from '@/api/types'
 
 const PRESETS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000]
 
@@ -42,6 +42,15 @@ export function useRecharge() {
     })
   }
 
+  async function submitSubscription(plan: SubscriptionPlan): Promise<CreateOrderResult> {
+    return createOrder({
+      amount: plan.price,
+      payment_type: method.value,
+      order_type: 'subscription',
+      plan_id: plan.id
+    })
+  }
+
   async function redeem(code: string): Promise<RedeemResult> {
     return redeemApi(code)
   }
@@ -56,6 +65,7 @@ export function useRecharge() {
     presets: PRESETS,
     load,
     submitRecharge,
+    submitSubscription,
     verifyOrder,
     redeem
   }
