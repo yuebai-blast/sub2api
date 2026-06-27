@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/${{ github.repository_owner }}/sub2api-user-portal
+  IMAGE: ghcr.io/${{ github.repository_owner }}/mintpop-api-user-portal
 
 jobs:
   version-gate:
@@ -148,5 +148,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Sub2API User Portal v${{ steps.notes.outputs.version }}
+          name: MintPop API User Portal v${{ steps.notes.outputs.version }}
           body_path: notes.md

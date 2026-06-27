@@ -1,4 +1,4 @@
-# Sub2API Docker 部署：backend + user-portal 两镜像
+# MintPop API Docker 部署：backend + user-portal 两镜像
 #
 # 网络说明：服务端口仅绑定 127.0.0.1（见下方 ports），需自备反向代理对外暴露。
 #          反代须加入本 compose 网络，才能通过服务名（backend:8080、user-portal:80）通信。
@@ -10,8 +10,8 @@
 
 services:
   backend:
-    image: ghcr.io/${OWNER}/sub2api:${BACKEND_TAG:-latest}   # 版本参数化
-    container_name: sub2api-backend
+    image: ghcr.io/${OWNER}/mintpop-api:${BACKEND_TAG:-latest}   # 版本参数化
+    container_name: mintpop-api-backend
     restart: unless-stopped
     env_file:
       - .env
@@ -30,8 +30,8 @@ services:
       start_period: 10s
 
   user-portal:
-    image: ghcr.io/${OWNER}/sub2api-user-portal:${USER_PORTAL_TAG:-latest}   # 版本参数化
-    container_name: sub2api-user-portal
+    image: ghcr.io/${OWNER}/mintpop-api-user-portal:${USER_PORTAL_TAG:-latest}   # 版本参数化
+    container_name: mintpop-api-user-portal
     restart: unless-stopped
     depends_on:
       # 等 backend 健康检查通过再启动，确保 nginx 启动时能解析并连通 backend:8080

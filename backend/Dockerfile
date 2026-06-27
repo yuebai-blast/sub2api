@@ -1,5 +1,5 @@
 # =============================================================================
-# Sub2API Backend 镜像（debian-slim + mise 多阶段，内嵌 frontend）
+# MintPop API Backend 镜像（debian-slim + mise 多阶段，内嵌 frontend）
 # =============================================================================
 ARG GOPROXY=https://goproxy.cn,direct
 ARG GOSUMDB=sum.golang.google.cn
@@ -52,7 +52,7 @@ RUN cd backend && \
       -tags embed \
       -ldflags="-s -w -X main.Version=${VERSION_VALUE} -X main.Commit=${COMMIT} -X main.Date=${DATE_VALUE} -X main.BuildType=release" \
       -trimpath \
-      -o /app/sub2api \
+      -o /app/mintpop-api \
       ./cmd/server
 
 # -----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ RUN cd backend && \
 FROM debian:13-slim AS runtime
 ARG PG_CLIENT_VERSION
 
-LABEL description="Sub2API - AI API Gateway Platform (backend)"
+LABEL description="MintPop API - AI API Gateway Platform (backend)"
 
 # 运行时依赖：ca-certificates/tzdata/curl(healthcheck) + PGDG postgresql-client
 RUN apt-get update \
@@ -80,7 +80,7 @@ RUN apt-get update \
 # 以 root 运行（不创建非 root 用户）：root 可直接写挂载卷 /app/data，
 # 无需 entrypoint 脚本做 chown/降权。
 WORKDIR /app
-COPY --from=build /app/sub2api /app/sub2api
+COPY --from=build /app/mintpop-api /app/mintpop-api
 COPY --from=build /app/backend/resources /app/resources
 RUN mkdir -p /app/data
 
@@ -88,4 +88,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -fsS -m 5 "http://localhost:${SERVER_PORT:-8080}/health" || exit 1
 
-ENTRYPOINT ["/app/sub2api"]
+ENTRYPOINT ["/app/mintpop-api"]

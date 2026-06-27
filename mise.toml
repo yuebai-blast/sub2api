@@ -122,11 +122,11 @@ run = "go test -tags=e2e -v -timeout=300s ./internal/integration/..."
 # ---------- 镜像 ----------
 [tasks.backend-image]
 description = "构建 backend 镜像（backend/Dockerfile，context 取仓库根）"
-run = "docker build -f backend/Dockerfile -t sub2api-backend:local ."
+run = "docker build -f backend/Dockerfile -t mintpop-api-backend:local ."
 
 [tasks.user-portal-image]
 description = "构建 user-portal 镜像（user-portal/Dockerfile，context 取仓库根）"
-run = "docker build -f user-portal/Dockerfile -t sub2api-user-portal:local ."
+run = "docker build -f user-portal/Dockerfile -t mintpop-api-user-portal:local ."
 
 # ---------- 发版（打 tag，收口改版本→提交→tag→推送） ----------
 # 两个发版任务统一签名（按参数形状消歧，两个位置参数均可选）：
@@ -135,7 +135,7 @@ run = "docker build -f user-portal/Dockerfile -t sub2api-user-portal:local ."
 #   mise run <c>-release v0.4.0           → 指定版本号，无说明
 #   mise run <c>-release v0.4.0 "更新说明" → 指定版本号 + 说明
 # 单参数：长得像 v?X.Y.Z(-pre) 当版本号，否则当说明；两参数则第一个必是版本号、第二个是说明。
-# 自动递增只动 patch；升 minor/major 或发预发布须显式传版本号。发版从默认分支 mint 切。
+# 自动递增只动 patch；升 minor/major 或发预发布须显式传版本号。发版从默认分支 mintpop 切。
 
 [tasks.backend-release]
 description = "发布 backend：改版本号→提交→打 tag→推送（用法见上方注释）"
@@ -147,7 +147,7 @@ run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
-RELEASE_BRANCH="mint"
+RELEASE_BRANCH="mintpop"
 COMPONENT="backend"
 TAG_PREFIX="backend-v"
 VERSION_FILE="backend/cmd/server/VERSION"
@@ -226,7 +226,7 @@ run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
-RELEASE_BRANCH="mint"
+RELEASE_BRANCH="mintpop"
 COMPONENT="user-portal"
 TAG_PREFIX="user-portal-v"
 VERSION_RE='^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
