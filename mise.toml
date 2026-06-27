@@ -293,3 +293,12 @@ git push origin "${RELEASE_BRANCH}"
 git push origin "${TAG}"
 echo "已发布 ${TAG}：commit 与 tag 均已推送，CI 将自动构建并创建 GitHub Release"
 '''
+
+# —— Docker Compose 部署 ——
+[tasks.up]
+description = "拉起 compose 部署（docker compose up -d，仅拉 registry 已发布镜像）"
+run = "docker compose up -d"
+
+[tasks.down]
+description = "停止并移除 compose 部署（docker compose down）"
+run = "docker compose down"
