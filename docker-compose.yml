@@ -33,6 +33,10 @@ services:
     image: ghcr.io/${OWNER}/sub2api-user-portal:${USER_PORTAL_TAG:-latest}   # 版本参数化
     container_name: sub2api-user-portal
     restart: unless-stopped
+    depends_on:
+      # 等 backend 健康检查通过再启动，确保 nginx 启动时能解析并连通 backend:8080
+      backend:
+        condition: service_healthy
     ports:
       # 仅绑 127.0.0.1（需自备反向代理对外暴露），宿主端口参数化（右侧容器端口固定 80）
       - "127.0.0.1:${USER_PORTAL_PORT:-9201}:80"
