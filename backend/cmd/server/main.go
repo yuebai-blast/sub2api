@@ -94,11 +94,20 @@ func main() {
 	runMainServer()
 }
 
-func runSetupServer() {
+// buildSetupRouter 构建安装向导模式下的路由引擎。
+// 抽成独立函数便于单测；runSetupServer 用它启动监听。
+func buildSetupRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(middleware.Recovery())
 	r.Use(middleware.CORS(config.CORSConfig{}))
 	r.Use(middleware.SecurityHeaders(config.CSPConfig{Enabled: true, Policy: config.DefaultCSPPolicy}, nil))
+
+	// 健康检查：向导模式下也必须提供 /health。
+	// 容器 healthcheck 探测 /health，向导模式缺该端点会导致容器一直 unhealthy，
+	// 进而阻塞 depends_on: service_healthy 的下游服务（如 user-portal）。
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 
 	// Register setup routes
 	setup.RegisterRoutes(r)
@@ -107,6 +116,12 @@ func runSetupServer() {
 	if web.HasEmbeddedFrontend() {
 		r.Use(web.ServeEmbeddedFrontend())
 	}
+
+	return r
+}
+
+func runSetupServer() {
+	r := buildSetupRouter()
 
 	// Get server address from config.yaml or environment variables (SERVER_HOST, SERVER_PORT)
 	// This allows users to run setup on a different address if needed
