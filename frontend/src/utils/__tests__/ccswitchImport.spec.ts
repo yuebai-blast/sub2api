@@ -17,7 +17,7 @@ describe('ccswitchImport utils', () => {
 
   const baseInput = {
     baseUrl: 'https://api.example.com',
-    providerName: 'Sub2API',
+    providerName: 'MintPop API',
     apiKey: 'sk-test',
     usageScript: 'return true'
   }

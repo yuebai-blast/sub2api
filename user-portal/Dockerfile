@@ -1,5 +1,5 @@
 # =============================================================================
-# Sub2API user-portal 镜像（debian-slim + mise 构建 → nginx 托管）
+# MintPop API user-portal 镜像（debian-slim + mise 构建 → nginx 托管）
 # =============================================================================
 FROM debian:13-slim AS build
 
