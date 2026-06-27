@@ -10,7 +10,7 @@
 
 services:
   backend:
-    image: ghcr.io/${OWNER}/mintpop-api:${BACKEND_TAG:-latest}   # 版本参数化
+    image: ghcr.io/${OWNER}/mintpop-api-backend:${BACKEND_TAG:-latest}   # 版本参数化
     container_name: mintpop-api-backend
     restart: unless-stopped
     env_file:
