@@ -200,7 +200,8 @@ fi
 # —— 改版本号 → 提交 → 打 tag → 先推分支再推 tag ——
 printf '%s\n' "${VERSION}" > "${VERSION_FILE}"
 git add "${VERSION_FILE}"
-git commit -m "chore(release): 发布 ${COMPONENT} v${VERSION}"
+# 版本文件已是目标值时暂存区无改动，跳过提交（避免空提交报错中断）
+git diff --cached --quiet || git commit -m "chore(release): 发布 ${COMPONENT} v${VERSION}"
 if [ -n "${NOTES}" ]; then
   git tag -a "${TAG}" -m "${NOTES}"
 else
@@ -278,7 +279,8 @@ fi
 # —— 改版本号 → 提交 → 打 tag → 先推分支再推 tag ——
 (cd user-portal && pnpm version "${VERSION}" --no-git-tag-version --allow-same-version >/dev/null)
 git add user-portal/package.json
-git commit -m "chore(release): 发布 ${COMPONENT} v${VERSION}"
+# 版本文件已是目标值时暂存区无改动，跳过提交（避免空提交报错中断）
+git diff --cached --quiet || git commit -m "chore(release): 发布 ${COMPONENT} v${VERSION}"
 if [ -n "${NOTES}" ]; then
   git tag -a "${TAG}" -m "${NOTES}"
 else
