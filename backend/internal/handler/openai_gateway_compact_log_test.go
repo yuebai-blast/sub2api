@@ -73,7 +73,7 @@ func captureHandlerStructuredLog(t *testing.T) (*handlerInMemoryLogSink, func())
 	err := logger.Init(logger.InitOptions{
 		Level:       "debug",
 		Format:      "json",
-		ServiceName: "sub2api",
+		ServiceName: "mintpop-api",
 		Environment: "test",
 		Output: logger.OutputOptions{
 			ToStdout: true,
