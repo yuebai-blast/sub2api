@@ -136,7 +136,7 @@ jobs:
             git tag -l --format='%(contents)' "$TAG" >> notes.md
             printf '\n\n' >> notes.md
           fi
-          # 2) 按类型过滤的变更日志置于其下（经 env 传入，不用 ${{ }} 直插脚本）
+          # 2) 按类型过滤的变更日志置于其下（经 env 传入，不用 GitHub 表达式直插脚本）
           printf '%s\n' "$CHANGELOG" >> notes.md
           # 3) 空正文兜底：注释为空 + 变更日志被全过滤时整篇空白，补占位文案
           if [ -z "$(tr -d '[:space:]' < notes.md)" ]; then
