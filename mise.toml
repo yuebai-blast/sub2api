@@ -43,11 +43,6 @@ if [ ! -x bin/server ]; then
   echo "未找到 backend/bin/server，请先执行：mise run build"
   exit 1
 fi
-if [ ! -f config.yaml ]; then
-  echo "缺少 backend/config.yaml，请先从模板拷贝并按需修改（外部 DB/Redis 连接等）："
-  echo "  cp backend/config.example.yaml backend/config.yaml   # 在仓库根执行"
-  exit 1
-fi
 exec ./bin/server
 '''
 
