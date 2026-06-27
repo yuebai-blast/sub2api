@@ -109,7 +109,7 @@ jobs:
               },
               "label_extractor": [
                 {
-                  "pattern": "^(feat|fix|perf|refactor|revert|build|chore|ci|docs|style|test)[(!:]",
+                  "pattern": "^(feat|fix|perf|refactor|revert|build|chore|ci|docs|style|test)[^:]*:.*",
                   "on_property": "title",
                   "target": "$1"
                 }
@@ -125,18 +125,28 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Assemble release notes
+        id: notes
         env:
           TAG: ${{ github.ref_name }}
           CHANGELOG: ${{ steps.changelog.outputs.changelog }}
         run: |
           : > notes.md
+          # 1) annotated tag 注释置顶（轻量 tag 无注释，%(contents) 会错取 commit，故先判类型）
           if [ "$(git cat-file -t "$TAG")" = "tag" ]; then
             git tag -l --format='%(contents)' "$TAG" >> notes.md
             printf '\n\n' >> notes.md
           fi
+          # 2) 按类型过滤的变更日志置于其下（经 env 传入，不用 ${{ }} 直插脚本）
           printf '%s\n' "$CHANGELOG" >> notes.md
+          # 3) 空正文兜底：注释为空 + 变更日志被全过滤时整篇空白，补占位文案
+          if [ -z "$(tr -d '[:space:]' < notes.md)" ]; then
+            echo "- 本次无面向用户的变更" > notes.md
+          fi
+          # Release 标题用的版本号 = tag 去前缀
+          echo "version=${TAG#user-portal-v}" >> "$GITHUB_OUTPUT"
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
+          name: Sub2API User Portal v${{ steps.notes.outputs.version }}
           body_path: notes.md
