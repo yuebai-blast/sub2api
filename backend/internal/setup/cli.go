@@ -96,7 +96,7 @@ func RunCLI() error {
 	cfg.Database.Password = promptPassword("PostgreSQL Password")
 
 	for {
-		cfg.Database.DBName = promptString(reader, "Database Name", "mintpop_api")
+		cfg.Database.DBName = promptString(reader, "Database Name", "sub2api")
 		if cliValidateDBName(cfg.Database.DBName) {
 			break
 		}
@@ -231,7 +231,7 @@ func RunCLI() error {
 	fmt.Println("╚═══════════════════════════════════════════╝")
 	fmt.Println()
 	fmt.Println("Start the server with:")
-	fmt.Println("  ./mintpop-api")
+	fmt.Println("  ./sub2api")
 	fmt.Println()
 	fmt.Printf("Admin panel: http://localhost:%d\n", cfg.Server.Port)
 	fmt.Println()
