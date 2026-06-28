@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import i18n, { SUPPORTED_LOCALES, LOCALE_LABELS, type AppLocale } from '@/i18n'
+import i18n, { SUPPORTED_LOCALES, LOCALE_LABELS, LOCALE_LOCKED, type AppLocale } from '@/i18n'
 
 const STORAGE_KEY = 'locale'
 
@@ -16,6 +16,8 @@ export const useLocaleStore = defineStore('locale', () => {
   }
 
   function setLocale(locale: AppLocale): void {
+    // 构建时锁定单语言时禁止切换（切换入口本已隐藏，此处为防御性兜底）
+    if (LOCALE_LOCKED) return
     current.value = locale
     i18n.global.locale.value = locale
     try {
@@ -38,5 +40,5 @@ export const useLocaleStore = defineStore('locale', () => {
   // 初始化即同步 <html lang>
   apply()
 
-  return { current, setLocale, toggle, label, locales: SUPPORTED_LOCALES }
+  return { current, setLocale, toggle, label, locales: SUPPORTED_LOCALES, locked: LOCALE_LOCKED }
 })

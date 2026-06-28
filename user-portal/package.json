@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build:local": "vue-tsc -b && vite build",
+    "build:prod": "vue-tsc -b && vite build --mode prod",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.ts,.tsx --fix",
     "lint:check": "eslint . --ext .vue,.ts,.tsx",

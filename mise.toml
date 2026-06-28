@@ -53,10 +53,10 @@ dir = "user-portal"
 run = "pnpm dev"
 
 [tasks.user-portal-build]
-description = "user-portal 类型检查 + 生产构建到 dist/"
+description = "user-portal 类型检查 + 本地构建到 dist/（= build:local，纯 vite build，读 .env.local，不含发版 .env.prod；发版构建走 user-portal-image）"
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = "pnpm build"
+run = "pnpm build:local"
 
 # ---------- 代码生成 ----------
 [tasks.generate]

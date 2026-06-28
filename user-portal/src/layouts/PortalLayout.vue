@@ -153,6 +153,7 @@ onMounted(() => {
               {{ isDark ? t('nav.lightMode') : t('nav.darkMode') }}<span>{{ isDark ? '☀' : '☾' }}</span>
             </a>
             <a
+              v-if="!localeStore.locked"
               class="mi text-mtext"
               @click="localeStore.toggle()"
             >
