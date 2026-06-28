@@ -51,10 +51,17 @@ async function onSubmit() {
       />
 
       <!-- 字标 -->
-      <div class="relative flex items-end gap-[7px]">
-        <span class="font-display text-[28px] font-semibold leading-none tracking-tight text-text">mint</span>
-        <span class="mb-1 inline-block h-[9px] w-[9px] rounded-full bg-accent" />
-        <span class="font-display text-[28px] font-semibold leading-none tracking-wide text-text">AI</span>
+      <div class="relative flex items-center">
+        <img
+          src="/wordmark-dark.png"
+          alt="MintPop API"
+          class="block h-8 w-auto dark:hidden"
+        >
+        <img
+          src="/wordmark-light.png"
+          alt="MintPop API"
+          class="hidden h-8 w-auto dark:block"
+        >
       </div>
 
       <!-- 编辑式标语 -->
@@ -85,10 +92,17 @@ async function onSubmit() {
     <div class="flex min-w-0 flex-1 items-center justify-center bg-bg px-10 py-12">
       <div class="w-full max-w-[392px]">
         <!-- 移动端字标 -->
-        <div class="mb-8 flex items-end gap-1.5 lg:hidden">
-          <span class="font-display text-2xl font-semibold leading-none tracking-tight text-text">mint</span>
-          <span class="mb-1 inline-block h-2 w-2 rounded-full bg-accent" />
-          <span class="font-display text-2xl font-semibold leading-none tracking-wide text-text">AI</span>
+        <div class="mb-8 flex items-center lg:hidden">
+          <img
+            src="/wordmark-dark.png"
+            alt="MintPop API"
+            class="block h-7 w-auto dark:hidden"
+          >
+          <img
+            src="/wordmark-light.png"
+            alt="MintPop API"
+            class="hidden h-7 w-auto dark:block"
+          >
         </div>
 
         <div class="mb-8">

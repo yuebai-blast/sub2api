@@ -1724,7 +1724,7 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
       };
     }
   })`
-  const providerName = (publicSettings.value?.site_name || 'mintpop-api').trim() || 'mintpop-api'
+  const providerName = (publicSettings.value?.site_name || 'MintPop API').trim() || 'MintPop API'
   const deeplink = buildCcSwitchImportDeeplink({
     baseUrl,
     platform,

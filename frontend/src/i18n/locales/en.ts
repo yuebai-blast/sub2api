@@ -3188,7 +3188,7 @@ export default {
         expiresAt: 'Expires At',
         actions: 'Actions'
       },
-      usageWindowsHint: '"5h / 7d" are the upstream account\'s official rolling usage windows (e.g. OpenAI ChatGPT, Claude). They are imposed by the upstream provider on the account itself — not configured by mintpop-api, and unrelated to the models you map. Usage resets automatically once each window rolls over, and the limit cannot be lifted from within mintpop-api.',
+      usageWindowsHint: '"5h / 7d" are the upstream account\'s official rolling usage windows (e.g. OpenAI ChatGPT, Claude). They are imposed by the upstream provider on the account itself — not configured by MintPop API, and unrelated to the models you map. Usage resets automatically once each window rolls over, and the limit cannot be lifted from within MintPop API.',
       allPrivacyModes: 'All Privacy States',
       privacyUnset: 'Unset',
       privacyTrainingOff: 'Training data sharing disabled',

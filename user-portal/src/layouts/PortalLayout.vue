@@ -54,10 +54,12 @@ onMounted(() => {
       style="background: var(--bar)"
     >
       <!-- logo -->
-      <div class="flex items-end gap-1.5">
-        <span class="font-display text-[22px] font-semibold leading-none tracking-tight text-text">mint</span>
-        <span class="mb-[3px] inline-block h-[7px] w-[7px] rounded-full bg-accent" />
-        <span class="font-display text-[22px] font-semibold leading-none tracking-wide text-text">AI</span>
+      <div class="flex shrink-0 items-center">
+        <img
+          :src="isDark ? '/wordmark-light.png' : '/wordmark-dark.png'"
+          alt="mintpop"
+          class="h-[26px] w-auto"
+        >
       </div>
 
       <!-- 导航 tabs -->

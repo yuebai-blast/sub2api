@@ -113,10 +113,17 @@ async function onSubmit() {
         style="background: radial-gradient(#1a1a1a 1.7px, transparent 1.9px); background-size: 15px 15px;"
       />
 
-      <div class="relative flex items-end gap-[7px]">
-        <span class="font-display text-[28px] font-semibold leading-none tracking-tight text-text">mint</span>
-        <span class="mb-1 inline-block h-[9px] w-[9px] rounded-full bg-accent" />
-        <span class="font-display text-[28px] font-semibold leading-none tracking-wide text-text">AI</span>
+      <div class="relative flex items-center">
+        <img
+          src="/wordmark-dark.png"
+          alt="MintPop API"
+          class="block h-8 w-auto dark:hidden"
+        >
+        <img
+          src="/wordmark-light.png"
+          alt="MintPop API"
+          class="hidden h-8 w-auto dark:block"
+        >
       </div>
 
       <div class="relative max-w-[420px]">
@@ -158,7 +165,7 @@ async function onSubmit() {
             创建账户
           </h1>
           <p class="text-sm text-subtle">
-            填写以下信息，开启你的 Mint AI。
+            填写以下信息，开启你的 MintPop API。
           </p>
         </div>
 

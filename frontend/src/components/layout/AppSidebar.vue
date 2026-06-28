@@ -8,17 +8,29 @@
   >
     <!-- Logo/Brand -->
     <div class="sidebar-header" :class="{ 'sidebar-header-collapsed': sidebarCollapsed }">
-      <!-- Custom Logo or Default Logo -->
-      <div class="sidebar-logo flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl shadow-glow">
-        <img v-if="settingsLoaded" :src="siteLogo || '/logo.png'" alt="Logo" class="h-full w-full object-contain" />
-      </div>
-      <div class="sidebar-brand" :class="{ 'sidebar-brand-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
-        <span class="sidebar-brand-title text-lg font-bold text-gray-900 dark:text-white">
-          {{ siteName }}
-        </span>
-        <!-- Version Badge -->
-        <VersionBadge :version="siteVersion" />
-      </div>
+      <!-- 自定义品牌（管理员上传了 logo）：方形 logo + 文字站名 -->
+      <template v-if="settingsLoaded && siteLogo">
+        <div class="sidebar-logo flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl shadow-glow">
+          <img :src="siteLogo" alt="Logo" class="h-full w-full object-contain" />
+        </div>
+        <div class="sidebar-brand" :class="{ 'sidebar-brand-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
+          <span class="sidebar-brand-title text-lg font-bold text-gray-900 dark:text-white">
+            {{ siteName }}
+          </span>
+          <!-- Version Badge -->
+          <VersionBadge :version="siteVersion" />
+        </div>
+      </template>
+      <!-- 默认 mintpop 品牌：收起→云朵方图标，展开→wordmark 图（随明暗主题切换） -->
+      <template v-else-if="settingsLoaded">
+        <div v-if="sidebarCollapsed" class="sidebar-logo flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl shadow-glow">
+          <img src="/logo.png" alt="mintpop" class="h-full w-full object-contain" />
+        </div>
+        <template v-else>
+          <img src="/wordmark-dark.png" alt="mintpop" class="block h-7 w-auto dark:hidden" />
+          <img src="/wordmark-light.png" alt="mintpop" class="hidden h-7 w-auto dark:block" />
+        </template>
+      </template>
     </div>
 
     <!-- Navigation -->

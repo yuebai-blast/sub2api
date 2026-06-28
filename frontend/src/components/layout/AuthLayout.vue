@@ -30,14 +30,22 @@
       <div class="mb-8 text-center">
         <!-- Custom Logo or Default Logo -->
         <template v-if="settingsLoaded">
-          <div
-            class="mb-4 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-primary-500/30"
-          >
-            <img :src="siteLogo || '/logo.png'" alt="Logo" class="h-full w-full object-contain" />
-          </div>
-          <h1 class="text-gradient mb-2 text-3xl font-bold">
-            {{ siteName }}
-          </h1>
+          <!-- 自定义品牌：方形 logo + 文字站名 -->
+          <template v-if="siteLogo">
+            <div
+              class="mb-4 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-primary-500/30"
+            >
+              <img :src="siteLogo" alt="Logo" class="h-full w-full object-contain" />
+            </div>
+            <h1 class="text-gradient mb-2 text-3xl font-bold">
+              {{ siteName }}
+            </h1>
+          </template>
+          <!-- 默认 mintpop 品牌：wordmark 图（随明暗主题切换） -->
+          <template v-else>
+            <img src="/wordmark-dark.png" alt="mintpop" class="mx-auto mb-4 block h-12 w-auto dark:hidden" />
+            <img src="/wordmark-light.png" alt="mintpop" class="mx-auto mb-4 hidden h-12 w-auto dark:block" />
+          </template>
           <p class="text-sm text-gray-500 dark:text-dark-400">
             {{ siteSubtitle }}
           </p>

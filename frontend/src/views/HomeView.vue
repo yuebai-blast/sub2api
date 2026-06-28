@@ -41,9 +41,14 @@
       <nav class="mx-auto flex max-w-6xl items-center justify-between">
         <!-- Logo -->
         <div class="flex items-center">
-          <div class="h-10 w-10 overflow-hidden rounded-xl shadow-md">
-            <img :src="siteLogo || '/logo.png'" alt="Logo" class="h-full w-full object-contain" />
+          <!-- 自定义品牌：方形 logo；默认 mintpop 品牌：wordmark 图（随明暗主题切换） -->
+          <div v-if="siteLogo" class="h-10 w-10 overflow-hidden rounded-xl shadow-md">
+            <img :src="siteLogo" alt="Logo" class="h-full w-full object-contain" />
           </div>
+          <template v-else>
+            <img src="/wordmark-dark.png" alt="mintpop" class="block h-7 w-auto dark:hidden" />
+            <img src="/wordmark-light.png" alt="mintpop" class="hidden h-7 w-auto dark:block" />
+          </template>
         </div>
 
         <!-- Nav Actions -->

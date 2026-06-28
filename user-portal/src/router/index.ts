@@ -72,8 +72,8 @@ router.beforeEach((to) => {
 })
 
 router.afterEach((to) => {
-  const title = (to.meta.title as string) || 'mint AI'
-  document.title = `${title} · mint AI`
+  const title = (to.meta.title as string) || 'MintPop API'
+  document.title = `${title} · MintPop API`
 })
 
 export default router
