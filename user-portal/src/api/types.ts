@@ -39,7 +39,7 @@ export interface User {
 // ==================== 鉴权 ====================
 
 export interface LoginRequest {
-  username: string
+  email: string
   password: string
 }
 
