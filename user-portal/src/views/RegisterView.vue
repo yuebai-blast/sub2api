@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import * as authApi from '@/api/auth'
 import { updateProfile } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +9,7 @@ import type { PublicSettings } from '@/api/types'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const router = useRouter()
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const username = ref('')
@@ -35,7 +37,7 @@ onMounted(async () => {
 
 async function sendCode() {
   if (!email.value) {
-    error.value = '请先填写邮箱'
+    error.value = t('auth.errEmailRequired')
     return
   }
   sending.value = true
@@ -48,7 +50,7 @@ async function sendCode() {
       if (countdown.value <= 0) clearInterval(timer)
     }, 1000)
   } catch (e) {
-    error.value = (e as { message?: string }).message || '验证码发送失败'
+    error.value = (e as { message?: string }).message || t('auth.errSendCodeFailed')
   } finally {
     sending.value = false
   }
@@ -56,19 +58,19 @@ async function sendCode() {
 
 async function onSubmit() {
   if (!email.value || !password.value) {
-    error.value = '请填写邮箱和密码'
+    error.value = t('auth.errEmailPasswordRequired')
     return
   }
   if (password.value.length < 6) {
-    error.value = '密码至少 6 位'
+    error.value = t('auth.errPasswordTooShort')
     return
   }
   if (password.value !== confirm.value) {
-    error.value = '两次输入的密码不一致'
+    error.value = t('auth.errPasswordMismatch')
     return
   }
   if (!agreed.value) {
-    error.value = '请先阅读并同意服务条款与隐私政策'
+    error.value = t('auth.errAgreeRequired')
     return
   }
   loading.value = true
@@ -91,7 +93,7 @@ async function onSubmit() {
     await authStore.fetchUser()
     router.push('/dashboard')
   } catch (e) {
-    error.value = (e as { message?: string }).message || '注册失败，请稍后重试'
+    error.value = (e as { message?: string }).message || t('auth.errRegisterFailed')
   } finally {
     loading.value = false
   }
@@ -128,15 +130,15 @@ async function onSubmit() {
 
       <div class="relative max-w-[420px]">
         <div class="mb-5 text-xs font-semibold uppercase tracking-[0.14em] text-pos">
-          3 分钟 · 即刻开通
+          {{ t('auth.registerKicker') }}
         </div>
         <h2 class="font-serif text-[42px] font-medium leading-[1.12] tracking-tight text-text">
-          注册即送<br><span class="relative whitespace-nowrap">体验额度<span
+          {{ t('auth.registerHeadlinePre') }}<span class="relative whitespace-nowrap">{{ t('auth.registerHeadlineMark') }}<span
             class="absolute inset-x-0 bottom-0.5 -z-10 h-[9px] rounded-sm bg-accent opacity-[0.28]"
-          /></span>，<br>无需绑卡。
+          /></span>{{ t('auth.registerHeadlineEnd') }}
         </h2>
         <p class="mt-5 text-[15px] leading-relaxed text-text3">
-          创建一个 API 密钥即可调用全部已接入模型，按实际使用量计费，团队用量一目了然。
+          {{ t('auth.registerBrandDesc') }}
         </p>
       </div>
 
@@ -144,15 +146,15 @@ async function onSubmit() {
       <div class="relative flex flex-col gap-3.5">
         <div class="flex items-center gap-[13px]">
           <span class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-white">1</span>
-          <span class="text-sm font-medium text-text2">创建账户</span>
+          <span class="text-sm font-medium text-text2">{{ t('auth.step1') }}</span>
         </div>
         <div class="flex items-center gap-[13px]">
           <span class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full border-[1.5px] border-border2 bg-card text-[13px] font-semibold text-subtle">2</span>
-          <span class="text-sm font-medium text-subtle">生成 API 密钥</span>
+          <span class="text-sm font-medium text-subtle">{{ t('auth.step2') }}</span>
         </div>
         <div class="flex items-center gap-[13px]">
           <span class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full border-[1.5px] border-border2 bg-card text-[13px] font-semibold text-subtle">3</span>
-          <span class="text-sm font-medium text-subtle">开始调用</span>
+          <span class="text-sm font-medium text-subtle">{{ t('auth.step3') }}</span>
         </div>
       </div>
     </div>
@@ -162,16 +164,16 @@ async function onSubmit() {
       <div class="w-full max-w-[392px]">
         <div class="mb-[30px]">
           <h1 class="mb-2 font-serif text-4xl font-medium tracking-tight text-text">
-            创建账户
+            {{ t('auth.createAccount') }}
           </h1>
           <p class="text-sm text-subtle">
-            填写以下信息，开启你的 MintPop API。
+            {{ t('auth.registerSubtitle') }}
           </p>
         </div>
 
         <form @submit.prevent="onSubmit">
           <div class="mb-4">
-            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">用户名</label>
+            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">{{ t('auth.usernameLabel') }}</label>
             <div class="relative">
               <svg
                 class="ico"
@@ -190,13 +192,13 @@ async function onSubmit() {
                 v-model="username"
                 type="text"
                 class="fld"
-                placeholder="给自己起个名字"
+                :placeholder="t('auth.usernamePlaceholder')"
               >
             </div>
           </div>
 
           <div class="mb-4">
-            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">邮箱</label>
+            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">{{ t('auth.emailLabel') }}</label>
             <div class="relative">
               <svg
                 class="ico"
@@ -227,13 +229,13 @@ async function onSubmit() {
             v-if="settings?.email_verify_enabled"
             class="mb-4"
           >
-            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">邮箱验证码</label>
+            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">{{ t('auth.verifyCodeLabel') }}</label>
             <div class="flex gap-2">
               <input
                 v-model="verifyCode"
                 type="text"
                 class="fld !pl-4"
-                placeholder="6 位验证码"
+                :placeholder="t('auth.verifyCodePlaceholder')"
               >
               <button
                 type="button"
@@ -241,14 +243,14 @@ async function onSubmit() {
                 class="flex-none whitespace-nowrap rounded-xl2 border-[1.5px] border-border2 px-3.5 text-[13px] font-medium text-text2 disabled:opacity-50"
                 @click="sendCode"
               >
-                {{ countdown > 0 ? `${countdown}s` : '发送验证码' }}
+                {{ countdown > 0 ? `${countdown}s` : t('auth.sendCode') }}
               </button>
             </div>
           </div>
 
           <div class="mb-4 grid grid-cols-2 gap-3">
             <div>
-              <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">密码</label>
+              <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">{{ t('auth.passwordLabel') }}</label>
               <div class="relative">
                 <svg
                   class="ico"
@@ -269,12 +271,12 @@ async function onSubmit() {
                   v-model="password"
                   type="password"
                   class="fld"
-                  placeholder="至少 6 位"
+                  :placeholder="t('auth.passwordMinPlaceholder')"
                 >
               </div>
             </div>
             <div>
-              <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">确认密码</label>
+              <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">{{ t('auth.confirmPasswordLabel') }}</label>
               <div class="relative">
                 <svg
                   class="ico"
@@ -289,7 +291,7 @@ async function onSubmit() {
                   v-model="confirm"
                   type="password"
                   class="fld"
-                  placeholder="再输一次"
+                  :placeholder="t('auth.confirmPasswordPlaceholder')"
                 >
               </div>
             </div>
@@ -299,7 +301,7 @@ async function onSubmit() {
             v-if="settings?.invitation_code_enabled !== false"
             class="mb-[22px]"
           >
-            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">邀请码 <span class="font-normal text-faint">· 选填</span></label>
+            <label class="mb-[9px] block text-xs font-semibold tracking-wide text-text2">{{ t('auth.invitationLabel') }} <span class="font-normal text-faint">{{ t('auth.optionalSuffix') }}</span></label>
             <div class="relative">
               <svg
                 class="ico"
@@ -320,7 +322,7 @@ async function onSubmit() {
                 v-model="invitation"
                 type="text"
                 class="fld"
-                placeholder="有邀请码可享额外额度"
+                :placeholder="t('auth.invitationPlaceholder')"
               >
             </div>
           </div>
@@ -331,7 +333,7 @@ async function onSubmit() {
               type="checkbox"
               class="mt-0.5 h-[17px] w-[17px] flex-none rounded-[5px] accent-accent"
             >
-            <span>我已阅读并同意 <span class="font-semibold text-text">服务条款</span> 与 <span class="font-semibold text-text">隐私政策</span></span>
+            <span>{{ t('auth.agreePrefix') }} <span class="font-semibold text-text">{{ t('auth.termsOfService') }}</span> {{ t('auth.and') }} <span class="font-semibold text-text">{{ t('auth.privacyPolicy') }}</span></span>
           </label>
 
           <p
@@ -351,7 +353,7 @@ async function onSubmit() {
               v-if="loading"
               :size="16"
             />
-            <span>{{ loading ? '创建中…' : '创建账户' }}</span>
+            <span>{{ loading ? t('auth.creating') : t('auth.createAccount') }}</span>
             <span
               v-if="!loading"
               class="text-base"
@@ -360,11 +362,11 @@ async function onSubmit() {
         </form>
 
         <p class="mt-[26px] text-center text-sm text-subtle">
-          已有账户？<router-link
+          {{ t('auth.haveAccount') }}<router-link
             to="/login"
             class="border-b-2 border-accent pb-px font-semibold text-text"
           >
-            直接登录
+            {{ t('auth.signInDirect') }}
           </router-link>
         </p>
       </div>

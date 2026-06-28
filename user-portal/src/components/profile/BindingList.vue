@@ -15,10 +15,10 @@ const emit = defineEmits<{
 <template>
   <div class="rounded-[18px] bg-card px-[30px] py-[28px] shadow-soft">
     <h3 class="mb-[4px] font-serif text-[20px] font-medium text-text">
-      登录方式绑定
+      {{ $t('profile.binding.title') }}
     </h3>
     <p class="mb-[22px] text-[13px] text-subtle">
-      查看当前绑定状态，并将更多第三方登录方式关联到此账号。
+      {{ $t('profile.binding.subtitle') }}
     </p>
 
     <div class="flex flex-col gap-[12px]">
@@ -51,15 +51,15 @@ const emit = defineEmits<{
         <!-- 文字 -->
         <div class="flex-1">
           <div class="mb-[3px] flex items-center gap-[9px]">
-            <span class="text-[14px] font-semibold text-text">邮箱</span>
+            <span class="text-[14px] font-semibold text-text">{{ $t('profile.binding.providers.email') }}</span>
             <span
               class="rounded-[6px] bg-[rgba(20,194,138,0.12)] px-[8px] py-[2px] text-[11px] font-semibold text-pos"
             >
-              已绑定
+              {{ $t('profile.binding.bound') }}
             </span>
           </div>
           <div class="text-[13px] text-subtle">
-            {{ props.user.email }} · 主邮箱在资料表单中管理
+            {{ $t('profile.binding.desc.email', { email: props.user.email }) }}
           </div>
         </div>
         <!-- 占位按钮（不接流程） -->
@@ -67,7 +67,7 @@ const emit = defineEmits<{
           class="cursor-pointer rounded-[9px] border-[1.5px] border-border2 bg-card px-[18px] py-[9px] text-[13px] font-medium text-text"
           type="button"
         >
-          管理邮箱
+          {{ $t('profile.binding.manageEmail') }}
         </button>
       </div>
 
@@ -88,17 +88,17 @@ const emit = defineEmits<{
               v-if="props.user.linuxdo_bound"
               class="rounded-[6px] bg-[rgba(20,194,138,0.12)] px-[8px] py-[2px] text-[11px] font-semibold text-pos"
             >
-              已绑定
+              {{ $t('profile.binding.bound') }}
             </span>
             <span
               v-else
               class="rounded-[6px] bg-track px-[8px] py-[2px] text-[11px] font-semibold text-subtle"
             >
-              未绑定
+              {{ $t('profile.binding.unbound') }}
             </span>
           </div>
           <div class="text-[13px] text-subtle">
-            使用 LinuxDo 账号快速登录
+            {{ $t('profile.binding.desc.linuxdo') }}
           </div>
         </div>
         <button
@@ -107,7 +107,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('unbind', 'linuxdo')"
         >
-          解绑
+          {{ $t('profile.binding.unbind') }}
         </button>
         <button
           v-else
@@ -115,7 +115,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('bind', 'linuxdo')"
         >
-          绑定
+          {{ $t('profile.binding.bind') }}
         </button>
       </div>
 
@@ -131,22 +131,22 @@ const emit = defineEmits<{
         </div>
         <div class="flex-1">
           <div class="mb-[3px] flex items-center gap-[9px]">
-            <span class="text-[14px] font-semibold text-text">钉钉</span>
+            <span class="text-[14px] font-semibold text-text">{{ $t('profile.binding.providers.dingtalk') }}</span>
             <span
               v-if="props.user.dingtalk_bound"
               class="rounded-[6px] bg-[rgba(20,194,138,0.12)] px-[8px] py-[2px] text-[11px] font-semibold text-pos"
             >
-              已绑定
+              {{ $t('profile.binding.bound') }}
             </span>
             <span
               v-else
               class="rounded-[6px] bg-track px-[8px] py-[2px] text-[11px] font-semibold text-subtle"
             >
-              未绑定
+              {{ $t('profile.binding.unbound') }}
             </span>
           </div>
           <div class="text-[13px] text-subtle">
-            关联企业钉钉以便团队管理
+            {{ $t('profile.binding.desc.dingtalk') }}
           </div>
         </div>
         <button
@@ -155,7 +155,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('unbind', 'dingtalk')"
         >
-          解绑
+          {{ $t('profile.binding.unbind') }}
         </button>
         <button
           v-else
@@ -163,7 +163,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('bind', 'dingtalk')"
         >
-          绑定
+          {{ $t('profile.binding.bind') }}
         </button>
       </div>
 
@@ -186,17 +186,17 @@ const emit = defineEmits<{
               v-if="props.user.oidc_bound"
               class="rounded-[6px] bg-[rgba(20,194,138,0.12)] px-[8px] py-[2px] text-[11px] font-semibold text-pos"
             >
-              已绑定
+              {{ $t('profile.binding.bound') }}
             </span>
             <span
               v-else
               class="rounded-[6px] bg-track px-[8px] py-[2px] text-[11px] font-semibold text-subtle"
             >
-              未绑定
+              {{ $t('profile.binding.unbound') }}
             </span>
           </div>
           <div class="text-[13px] text-subtle">
-            通过标准 OIDC 单点登录接入
+            {{ $t('profile.binding.desc.oidc') }}
           </div>
         </div>
         <button
@@ -205,7 +205,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('unbind', 'oidc')"
         >
-          解绑
+          {{ $t('profile.binding.unbind') }}
         </button>
         <button
           v-else
@@ -213,7 +213,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('bind', 'oidc')"
         >
-          绑定
+          {{ $t('profile.binding.bind') }}
         </button>
       </div>
 
@@ -238,22 +238,22 @@ const emit = defineEmits<{
         </div>
         <div class="flex-1">
           <div class="mb-[3px] flex items-center gap-[9px]">
-            <span class="text-[14px] font-semibold text-text">微信</span>
+            <span class="text-[14px] font-semibold text-text">{{ $t('profile.binding.providers.wechat') }}</span>
             <span
               v-if="props.user.wechat_bound"
               class="rounded-[6px] bg-[rgba(20,194,138,0.12)] px-[8px] py-[2px] text-[11px] font-semibold text-pos"
             >
-              已绑定
+              {{ $t('profile.binding.bound') }}
             </span>
             <span
               v-else
               class="rounded-[6px] bg-track px-[8px] py-[2px] text-[11px] font-semibold text-subtle"
             >
-              未绑定
+              {{ $t('profile.binding.unbound') }}
             </span>
           </div>
           <div class="text-[13px] text-subtle">
-            使用微信扫码快速登录
+            {{ $t('profile.binding.desc.wechat') }}
           </div>
         </div>
         <button
@@ -262,7 +262,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('unbind', 'wechat')"
         >
-          解绑
+          {{ $t('profile.binding.unbind') }}
         </button>
         <button
           v-else
@@ -270,7 +270,7 @@ const emit = defineEmits<{
           type="button"
           @click="emit('bind', 'wechat')"
         >
-          绑定
+          {{ $t('profile.binding.bind') }}
         </button>
       </div>
     </div>

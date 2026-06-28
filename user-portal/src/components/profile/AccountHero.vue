@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { User } from '@/api/types'
 import { formatBalance, formatRegMonth } from '@/utils/format'
 
 const props = defineProps<{ user: User }>()
+const { t } = useI18n()
 
 /** 取用户名首字作为头像默认字符 */
 function avatarChar(u: User): string {
@@ -11,8 +13,8 @@ function avatarChar(u: User): string {
 
 /** 角色标签 */
 function roleLabel(role: string | undefined): string {
-  if (role === 'admin') return '管理员'
-  return '用户'
+  if (role === 'admin') return t('profile.role.admin')
+  return t('profile.role.user')
 }
 
 </script>
@@ -64,7 +66,7 @@ function roleLabel(role: string | undefined): string {
                 : 'bg-[rgba(20,194,138,0.12)] text-pos',
             ]"
           >
-            {{ props.user.status === 'disabled' ? '● 已禁用' : '● 已启用' }}
+            ● {{ props.user.status === 'disabled' ? $t('profile.status.disabled') : $t('profile.status.enabled') }}
           </span>
         </div>
         <div class="text-[14px] text-subtle">
@@ -78,7 +80,7 @@ function roleLabel(role: string | undefined): string {
       <!-- 账户余额 -->
       <div class="rounded-[14px] bg-bg px-[20px] py-[18px]">
         <div class="mb-[12px] text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-          账户余额
+          {{ $t('profile.stats.balance') }}
         </div>
         <div class="font-serif text-[28px] font-medium leading-none text-text">
           ${{ formatBalance(props.user.balance) }}
@@ -88,7 +90,7 @@ function roleLabel(role: string | undefined): string {
       <!-- 并发限制 -->
       <div class="rounded-[14px] bg-bg px-[20px] py-[18px]">
         <div class="mb-[12px] text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-          并发限制
+          {{ $t('profile.stats.concurrency') }}
         </div>
         <div class="font-serif text-[28px] font-medium leading-none text-text">
           {{ props.user.concurrency ?? '—' }}
@@ -98,7 +100,7 @@ function roleLabel(role: string | undefined): string {
       <!-- 注册时间 -->
       <div class="rounded-[14px] bg-bg px-[20px] py-[18px]">
         <div class="mb-[12px] text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-          注册时间
+          {{ $t('profile.stats.registeredAt') }}
         </div>
         <div class="font-serif text-[28px] font-medium leading-none text-text">
           {{ formatRegMonth(props.user.created_at) }}

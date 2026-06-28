@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import PortalLayout from '@/layouts/PortalLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -15,18 +16,19 @@ import { useAuthStore } from '@/stores/auth'
 import { formatBalance, formatDateMinute, orderStatusMeta } from '@/utils/format'
 import type { PaymentOrder } from '@/api/types'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const { rows, total, page, pageSize, statusFilter, search, loading, error, loaded, load, setPage, cancel } = useOrders()
 
-// 状态 chip 标签
-const tabs = [
-  { label: '全部', value: '' },
-  { label: '待支付', value: 'pending' },
-  { label: '已支付', value: 'paid' },
-  { label: '已完成', value: 'completed' },
-  { label: '已退款', value: 'refunded' },
-]
+// 状态 chip 标签（value 为后端枚举值，保持不变）
+const tabs = computed(() => [
+  { label: t('orders.tabs.all'), value: '' },
+  { label: t('orders.tabs.pending'), value: 'pending' },
+  { label: t('orders.tabs.paid'), value: 'paid' },
+  { label: t('orders.tabs.completed'), value: 'completed' },
+  { label: t('orders.tabs.refunded'), value: 'refunded' },
+])
 
 // 切换 tab 时重置分页
 function pickTab(value: string) {
@@ -54,7 +56,7 @@ const totalRecharge = computed(() => {
 
 const latestOrder = computed(() => rows.value[0] ?? null)
 
-const statTotalHint = computed(() => `${paidCount.value} 笔已支付 · ${pendingCount.value} 笔待支付`)
+const statTotalHint = computed(() => t('orders.stats.totalHint', { paid: paidCount.value, pending: pendingCount.value }))
 const statLatestValue = computed(() => {
   if (!latestOrder.value) return '—'
   const meta = orderStatusMeta(latestOrder.value.status)
@@ -96,7 +98,7 @@ async function confirmCancel() {
     cancelOpen.value = false
     cancelTarget.value = null
   } catch (e) {
-    cancelError.value = (e as { message?: string }).message || '取消订单失败，请重试'
+    cancelError.value = (e as { message?: string }).message || t('orders.cancelFailed')
   } finally {
     cancelLoading.value = false
   }
@@ -132,8 +134,8 @@ onMounted(load)
   <PortalLayout>
     <!-- 页头 -->
     <PageHeader
-      title="我的订单"
-      subtitle="查看所有充值与订阅订单记录。"
+      :title="$t('orders.pageTitle')"
+      :subtitle="$t('orders.pageSubtitle')"
     >
       <template #actions>
         <button
@@ -141,13 +143,13 @@ onMounted(load)
           :disabled="loading"
           @click="load"
         >
-          ↻ 刷新
+          ↻ {{ $t('common.refresh') }}
         </button>
         <button
           class="rounded-full bg-accent px-[22px] py-[11px] text-[14px] font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90"
           @click="router.push('/recharge')"
         >
-          + 返回充值
+          + {{ $t('orders.backToRecharge') }}
         </button>
       </template>
     </PageHeader>
@@ -172,7 +174,7 @@ onMounted(load)
         class="mt-4 rounded-full border border-border px-5 py-2 text-sm font-semibold text-text"
         @click="load"
       >
-        重试
+        {{ $t('common.retry') }}
       </button>
     </div>
 
@@ -180,17 +182,17 @@ onMounted(load)
       <!-- StatCard 统计行 -->
       <div class="mb-[22px] grid grid-cols-1 gap-[18px] sm:grid-cols-3">
         <StatCard
-          label="订单总数"
+          :label="$t('orders.stats.total')"
           :value="String(total)"
           :hint="statTotalHint"
         />
         <StatCard
-          label="累计充值"
+          :label="$t('orders.stats.totalRecharge')"
           :value="`$${formatBalance(totalRecharge)}`"
-          hint="已完成订单合计"
+          :hint="$t('orders.stats.totalRechargeHint')"
         />
         <StatCard
-          label="最近订单"
+          :label="$t('orders.stats.latest')"
           :value="statLatestValue"
           :hint="statLatestHint"
         />
@@ -232,13 +234,13 @@ onMounted(load)
           <input
             v-model="search"
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card py-[11px] pl-10 pr-4 text-sm text-text outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
-            placeholder="搜索订单编号…"
+            :placeholder="$t('orders.searchPlaceholder')"
           >
           <p
             v-if="search.trim()"
             class="absolute mt-1.5 text-[11px] text-subtle"
           >
-            搜索仅过滤当前页
+            {{ $t('orders.searchHint') }}
           </p>
         </div>
       </div>
@@ -267,7 +269,7 @@ onMounted(load)
       v-if="paySuccessNote"
       class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-pos px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(14,158,114,.35)]"
     >
-      支付成功，余额已更新 ✓
+      {{ $t('orders.paySuccess') }}
     </div>
 
     <!-- 立即支付弹窗 -->
@@ -288,13 +290,13 @@ onMounted(load)
     <!-- 取消确认弹窗 -->
     <Modal
       :open="cancelOpen"
-      title="取消订单"
+      :title="$t('orders.cancelTitle')"
       @close="cancelOpen = false"
     >
       <p class="text-sm text-text2">
-        确定要取消订单
+        {{ $t('orders.cancelConfirmPrefix') }}
         <span class="font-medium text-text">{{ cancelTarget?.out_trade_no }}</span>
-        吗？该操作无法撤销。
+        {{ $t('orders.cancelConfirmSuffix') }}
       </p>
       <p
         v-if="cancelError"
@@ -308,14 +310,14 @@ onMounted(load)
           :disabled="cancelLoading"
           @click="cancelOpen = false"
         >
-          再想想
+          {{ $t('orders.cancelReconsider') }}
         </button>
         <button
           class="rounded-full bg-neg px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
           :disabled="cancelLoading"
           @click="confirmCancel"
         >
-          {{ cancelLoading ? '取消中…' : '确认取消' }}
+          {{ cancelLoading ? $t('orders.cancelling') : $t('orders.confirmCancel') }}
         </button>
       </template>
     </Modal>

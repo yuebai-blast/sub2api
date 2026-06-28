@@ -71,8 +71,8 @@ async function confirmRemove() {
   <PortalLayout>
     <!-- 页头 -->
     <PageHeader
-      title="API 密钥"
-      subtitle="管理您的 API 密钥与访问令牌。"
+      :title="$t('keys.title')"
+      :subtitle="$t('keys.subtitle')"
     >
       <template #actions>
         <button
@@ -80,13 +80,13 @@ async function confirmRemove() {
           :disabled="k.loading.value"
           @click="k.load()"
         >
-          ↻ 刷新
+          ↻ {{ $t('common.refresh') }}
         </button>
         <button
           class="rounded-full bg-accent px-[22px] py-[11px] text-sm font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90"
           @click="showCreate = true"
         >
-          + 创建密钥
+          + {{ $t('keys.createKey') }}
         </button>
       </template>
     </PageHeader>
@@ -107,7 +107,7 @@ async function confirmRemove() {
         class="ml-2 underline"
         @click="k.load()"
       >
-        重试
+        {{ $t('common.retry') }}
       </button>
     </div>
 
@@ -116,15 +116,15 @@ async function confirmRemove() {
       <!-- 统计卡片 -->
       <div class="mb-[22px] grid grid-cols-2 gap-[18px]">
         <StatCard
-          label="密钥总数"
+          :label="$t('keys.stats.totalLabel')"
           :value="String(k.total.value)"
-          :hint="`${activeCount} 个已启用 · ${inactiveCount} 个已禁用`"
+          :hint="$t('keys.stats.statusHint', { active: activeCount, inactive: inactiveCount })"
           accent
         />
         <StatCard
-          label="近 30 天消费"
+          :label="$t('keys.stats.cost30dLabel')"
           :value="`$${formatCost(totalCost)}`"
-          hint="所有密钥合计"
+          :hint="$t('keys.stats.costHint')"
           accent
         />
       </div>
@@ -152,7 +152,7 @@ async function confirmRemove() {
           <input
             v-model="k.filters.search"
             type="text"
-            placeholder="搜索名称或 Key…"
+            :placeholder="$t('keys.searchPlaceholder')"
             class="w-full rounded-[11px] border-[1.5px] border-border2 bg-card py-[11px] pl-10 pr-4 text-sm text-text outline-none focus:border-accent"
             @change="k.load()"
           >
@@ -165,7 +165,7 @@ async function confirmRemove() {
           @change="k.load()"
         >
           <option value="">
-            全部分组
+            {{ $t('keys.filter.allGroups') }}
           </option>
           <option
             v-for="g in k.groups.value"
@@ -183,13 +183,13 @@ async function confirmRemove() {
           @change="k.load()"
         >
           <option value="">
-            全部状态
+            {{ $t('keys.filter.allStatus') }}
           </option>
           <option value="active">
-            活跃
+            {{ $t('keys.status.active') }}
           </option>
           <option value="inactive">
-            已禁用
+            {{ $t('keys.status.inactive') }}
           </option>
         </select>
       </FilterBar>
@@ -233,25 +233,25 @@ async function confirmRemove() {
     <!-- 删除确认弹窗 -->
     <Modal
       :open="!!removeTarget"
-      title="确认删除"
+      :title="$t('keys.delete.confirmTitle')"
       @close="removeTarget = null"
     >
       <p class="text-sm text-text2">
-        确认删除密钥 <b class="font-semibold text-text">{{ removeTarget?.name }}</b>？此操作不可撤销。
+        {{ $t('keys.delete.confirmPrefix') }}<b class="font-semibold text-text">{{ removeTarget?.name }}</b>{{ $t('keys.delete.confirmSuffix') }}
       </p>
       <template #footer>
         <button
           class="rounded-full border border-border px-5 py-2 text-sm font-medium text-text2 transition-colors hover:border-border2 hover:text-text"
           @click="removeTarget = null"
         >
-          取消
+          {{ $t('common.cancel') }}
         </button>
         <button
           class="rounded-full bg-neg px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           :disabled="removing"
           @click="confirmRemove"
         >
-          {{ removing ? '删除中…' : '确认删除' }}
+          {{ removing ? $t('keys.delete.deleting') : $t('keys.delete.confirmBtn') }}
         </button>
       </template>
     </Modal>

@@ -86,9 +86,9 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
   <div class="mb-3.5 rounded-xl3 bg-card px-7 py-[26px] shadow-soft">
     <div class="mb-5 flex items-center justify-between">
       <h3 class="font-serif text-lg font-medium text-text">
-        Token 使用趋势
+        {{ $t('dashboard.trend.title') }}
       </h3>
-      <span class="text-xs font-medium text-pos">● 近 7 天</span>
+      <span class="text-xs font-medium text-pos">● {{ $t('dashboard.last7Days') }}</span>
     </div>
     <div class="h-40">
       <Line
@@ -100,7 +100,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
         v-else
         class="flex h-full items-center justify-center text-sm text-subtle"
       >
-        暂无数据
+        {{ $t('common.noData') }}
       </div>
     </div>
   </div>

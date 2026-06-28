@@ -30,13 +30,13 @@ function platformDot(platform: string | undefined): string {
     <div
       class="grid grid-cols-[1.4fr_1.5fr_1fr_1.3fr_0.9fr_1.7fr] gap-4 border-b border-track px-[26px] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint"
     >
-      <div>名称 · 密钥</div>
-      <div>分组</div>
-      <div>状态</div>
-      <div>用量</div>
-      <div>速率</div>
+      <div>{{ $t('keys.table.nameKey') }}</div>
+      <div>{{ $t('keys.table.group') }}</div>
+      <div>{{ $t('keys.table.status') }}</div>
+      <div>{{ $t('keys.table.usage') }}</div>
+      <div>{{ $t('keys.table.rate') }}</div>
       <div class="text-right">
-        操作
+        {{ $t('keys.table.actions') }}
       </div>
     </div>
 
@@ -86,19 +86,19 @@ function platformDot(platform: string | undefined): string {
       <div>
         <StatusBadge
           :variant="row.status === 'active' ? 'active' : 'inactive'"
-          :label="row.status === 'active' ? '活跃' : '已禁用'"
+          :label="row.status === 'active' ? $t('keys.status.active') : $t('keys.status.inactive')"
         />
       </div>
 
       <!-- 用量 -->
       <div class="text-[13px] leading-relaxed text-text3">
-        今日 <b class="font-semibold text-text">${{ formatCost(usage[String(row.id)]?.today_actual_cost ?? 0) }}</b><br>
-        30天 <b class="font-semibold text-text">${{ formatCost(usage[String(row.id)]?.total_actual_cost ?? 0) }}</b>
+        {{ $t('keys.table.today') }} <b class="font-semibold text-text">${{ formatCost(usage[String(row.id)]?.today_actual_cost ?? 0) }}</b><br>
+        {{ $t('keys.table.last30d') }} <b class="font-semibold text-text">${{ formatCost(usage[String(row.id)]?.total_actual_cost ?? 0) }}</b>
       </div>
 
       <!-- 速率 -->
       <div class="text-[13px] font-medium text-text2">
-        {{ row.rate_limit_1d ? `${row.rate_limit_1d}/天` : '—' }}
+        {{ row.rate_limit_1d ? $t('keys.table.ratePerDay', { n: row.rate_limit_1d }) : '—' }}
       </div>
 
       <!-- 操作 -->
@@ -107,26 +107,26 @@ function platformDot(platform: string | undefined): string {
           class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-xs font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
           @click="emit('copy', row)"
         >
-          使用
+          {{ $t('keys.table.use') }}
         </button>
         <button
           class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-xs font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
           @click="emit('edit', row)"
         >
-          编辑
+          {{ $t('common.edit') }}
         </button>
         <button
           class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-xs font-medium transition-colors hover:bg-muted"
           :class="row.status === 'active' ? 'text-text3 hover:text-text' : 'text-pos hover:text-pos'"
           @click="emit('toggle', row)"
         >
-          {{ row.status === 'active' ? '禁用' : '启用' }}
+          {{ row.status === 'active' ? $t('keys.disable') : $t('keys.enable') }}
         </button>
         <button
           class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-xs font-medium text-neg transition-colors hover:bg-muted"
           @click="emit('remove', row)"
         >
-          删除
+          {{ $t('common.delete') }}
         </button>
       </div>
     </div>
@@ -136,7 +136,7 @@ function platformDot(platform: string | undefined): string {
       v-if="rows.length === 0"
       class="px-[26px] py-16 text-center text-sm text-subtle"
     >
-      暂无密钥数据
+      {{ $t('keys.empty') }}
     </div>
   </div>
 </template>

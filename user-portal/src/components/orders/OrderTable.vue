@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { orderStatusMeta, formatCNY, formatBalance, formatDateMinute } from '@/utils/format'
 import type { PaymentOrder } from '@/api/types'
+
+const { t } = useI18n()
 
 defineProps<{ rows: PaymentOrder[] }>()
 
@@ -20,14 +23,14 @@ function paymentDot(type: string | null | undefined): string {
 }
 
 function paymentLabel(type: string | null | undefined): string {
-  const t = (type ?? '').toLowerCase()
-  if (t.includes('wxpay') || t.includes('wechat') || t.includes('wx')) return '微信支付'
-  if (t.includes('alipay') || t.includes('ali')) return '支付宝'
+  const ty = (type ?? '').toLowerCase()
+  if (ty.includes('wxpay') || ty.includes('wechat') || ty.includes('wx')) return t('orders.payment.wechat')
+  if (ty.includes('alipay') || ty.includes('ali')) return t('orders.payment.alipay')
   return type || '—'
 }
 
 function orderKind(orderType: string): string {
-  return orderType === 'balance' ? '账户充值' : '订阅'
+  return orderType === 'balance' ? t('orders.orderType.balance') : t('orders.orderType.subscription')
 }
 </script>
 
@@ -37,13 +40,13 @@ function orderKind(orderType: string): string {
     class="grid gap-4 border-b border-track px-[26px] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint"
     style="grid-template-columns: 1.5fr 1fr 0.9fr 1.1fr 1.3fr 1.2fr"
   >
-    <div>订单编号</div>
-    <div>实付</div>
-    <div>支付方式</div>
-    <div>状态</div>
-    <div>创建时间</div>
+    <div>{{ $t('orders.table.orderNo') }}</div>
+    <div>{{ $t('orders.table.paid') }}</div>
+    <div>{{ $t('orders.table.paymentMethod') }}</div>
+    <div>{{ $t('orders.table.status') }}</div>
+    <div>{{ $t('orders.table.createdAt') }}</div>
     <div class="text-right">
-      操作
+      {{ $t('orders.table.actions') }}
     </div>
   </div>
 
@@ -52,7 +55,7 @@ function orderKind(orderType: string): string {
     v-if="rows.length === 0"
     class="px-[26px] py-16 text-center text-sm text-subtle"
   >
-    暂无订单记录
+    {{ $t('orders.empty') }}
   </div>
 
   <!-- 数据行 -->
@@ -109,28 +112,28 @@ function orderKind(orderType: string): string {
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
         @click="emit('view', row)"
       >
-        查看
+        {{ $t('orders.actions.view') }}
       </button>
       <button
         v-if="row.status === 'pending'"
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-accent transition-colors hover:bg-muted"
         @click="emit('pay', row)"
       >
-        立即支付
+        {{ $t('orders.actions.payNow') }}
       </button>
       <button
         v-if="row.status === 'pending'"
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
         @click="emit('cancel', row)"
       >
-        取消
+        {{ $t('common.cancel') }}
       </button>
       <button
         v-if="row.status === 'failed' || row.status === 'refunded'"
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-accent transition-colors hover:bg-muted"
         @click="emit('reorder', row)"
       >
-        重新下单
+        {{ $t('orders.actions.reorder') }}
       </button>
     </div>
   </div>

@@ -7,6 +7,6 @@ withDefaults(defineProps<{ size?: number }>(), { size: 28 })
     class="inline-block animate-spin rounded-full border-2 border-track border-t-accent"
     :style="{ width: `${size}px`, height: `${size}px` }"
     role="status"
-    aria-label="加载中"
+    :aria-label="$t('common.loading')"
   />
 </template>

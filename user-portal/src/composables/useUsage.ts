@@ -1,4 +1,5 @@
 import { ref, reactive } from 'vue'
+import i18n from '@/i18n'
 import { queryUsage, getDashboardStats, type UsageQueryParams } from '@/api/usage'
 import { listKeys } from '@/api/keys'
 import type { UsageLog, UserDashboardStats, ApiKey } from '@/api/types'
@@ -42,7 +43,7 @@ export function useUsage() {
       stats.value = s
       loaded.value = true
     } catch (e) {
-      error.value = (e as { message?: string }).message || '加载失败'
+      error.value = (e as { message?: string }).message || i18n.global.t('common.loadFailed')
     } finally {
       loading.value = false
     }

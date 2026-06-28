@@ -23,8 +23,8 @@ onMounted(() => {
 <template>
   <PortalLayout>
     <PageHeader
-      title="个人资料"
-      subtitle="管理您的账户信息与登录方式。"
+      :title="$t('profile.title')"
+      :subtitle="$t('profile.subtitle')"
     />
 
     <!-- 加载态 -->
@@ -45,7 +45,7 @@ onMounted(() => {
         class="ml-2 underline"
         @click="p.load()"
       >
-        重试
+        {{ $t('common.retry') }}
       </button>
     </div>
 

@@ -53,30 +53,30 @@ function submit() {
 <template>
   <Modal
     :open="open"
-    title="编辑密钥"
+    :title="$t('keys.edit.title')"
     @close="emit('close')"
   >
     <div class="flex flex-col gap-4">
       <!-- 名称 -->
       <div>
-        <label class="mb-1.5 block text-xs font-medium text-text2">名称 <span class="text-neg">*</span></label>
+        <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.form.name') }} <span class="text-neg">*</span></label>
         <input
           v-model="name"
           type="text"
-          placeholder="密钥名称"
+          :placeholder="$t('keys.form.editNamePlaceholder')"
           class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
         >
       </div>
 
       <!-- 分组 -->
       <div>
-        <label class="mb-1.5 block text-xs font-medium text-text2">分组</label>
+        <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.form.group') }}</label>
         <select
           v-model="groupId"
           class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
         >
           <option :value="null">
-            不指定分组
+            {{ $t('keys.form.noGroup') }}
           </option>
           <option
             v-for="g in groups"
@@ -90,7 +90,7 @@ function submit() {
 
       <!-- 启用开关 -->
       <div class="flex items-center justify-between rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3">
-        <span class="text-sm font-medium text-text2">启用密钥</span>
+        <span class="text-sm font-medium text-text2">{{ $t('keys.edit.enableLabel') }}</span>
         <button
           type="button"
           class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors"
@@ -110,14 +110,14 @@ function submit() {
         class="rounded-full border border-border px-5 py-2 text-sm font-medium text-text2 transition-colors hover:border-border2 hover:text-text"
         @click="emit('close')"
       >
-        取消
+        {{ $t('common.cancel') }}
       </button>
       <button
         class="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90 disabled:opacity-50"
         :disabled="!name.trim() || submitting"
         @click="submit"
       >
-        {{ submitting ? '保存中…' : '保存' }}
+        {{ submitting ? $t('keys.edit.saving') : $t('common.save') }}
       </button>
     </template>
   </Modal>

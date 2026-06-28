@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import PortalLayout from '@/layouts/PortalLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -19,6 +20,8 @@ import {
   cacheHitRate,
   toLocalDate,
 } from '@/utils/format'
+
+const { t } = useI18n()
 
 const {
   rows,
@@ -56,13 +59,25 @@ function handleReset() {
 
 async function handleExport() {
   const data = await fetchForExport()
-  const headers = ['密钥', '模型', '强度', '端点', '流式', '计费', 'input_tokens', 'output_tokens', 'cache_tokens', 'created_at', 'actual_cost']
+  const headers = [
+    t('usage.table.key'),
+    t('usage.table.model'),
+    t('usage.table.effort'),
+    t('usage.table.endpoint'),
+    t('usage.table.stream'),
+    t('usage.table.billing'),
+    'input_tokens',
+    'output_tokens',
+    'cache_tokens',
+    'created_at',
+    'actual_cost',
+  ]
   const rowsData = data.map((r) => [
     r.api_key?.name ?? '',
     r.model,
     formatReasoningEffort(r.reasoning_effort),
     r.inbound_endpoint ?? '',
-    r.stream ? '是' : '否',
+    r.stream ? t('common.yes') : t('common.no'),
     formatBillingType(r.billing_type),
     r.input_tokens,
     r.output_tokens,
@@ -79,7 +94,12 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
   // 该差值实为「缓存命中 + 缓存创建」之和，待接口扩展后再拆分展示。
   const cacheTokens = s.total_tokens > 0 ? s.total_tokens - s.total_input_tokens - s.total_output_tokens : 0
   const rate = cacheHitRate(cacheTokens, s.total_input_tokens)
-  return `入 ${formatTokens(s.total_input_tokens)} · 出 ${formatTokens(s.total_output_tokens)} · 缓存命中 ${formatTokens(cacheTokens)}\n命中率 ${rate.toFixed(1)}%`
+  return t('usage.kpi.tokenHint', {
+    input: formatTokens(s.total_input_tokens),
+    output: formatTokens(s.total_output_tokens),
+    cache: formatTokens(cacheTokens),
+    rate: rate.toFixed(1),
+  })
 }
 </script>
 
@@ -87,8 +107,8 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
   <PortalLayout>
     <!-- 页头 -->
     <PageHeader
-      title="使用记录"
-      subtitle="查看和分析您的 API 使用历史。"
+      :title="$t('usage.title')"
+      :subtitle="$t('usage.subtitle')"
     >
       <template #actions>
         <button
@@ -96,19 +116,19 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
           :disabled="loading"
           @click="load()"
         >
-          ↻ 刷新
+          ↻ {{ $t('common.refresh') }}
         </button>
         <button
           class="rounded-full bg-card px-4 py-[11px] text-[13px] font-medium text-text2 shadow-pill transition-colors hover:text-text"
           @click="handleReset"
         >
-          重置
+          {{ $t('common.reset') }}
         </button>
         <button
           class="rounded-full bg-accent px-[22px] py-[11px] text-[14px] font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90"
           @click="handleExport"
         >
-          ↓ 导出 CSV
+          ↓ {{ $t('usage.exportCsv') }}
         </button>
       </template>
     </PageHeader>
@@ -129,7 +149,7 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
         class="ml-2 underline"
         @click="load()"
       >
-        重试
+        {{ $t('common.retry') }}
       </button>
     </div>
 
@@ -137,25 +157,25 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
       <!-- KPI 卡片 -->
       <div class="mb-[22px] grid grid-cols-2 gap-[18px] lg:grid-cols-4">
         <StatCard
-          label="总请求数"
+          :label="$t('usage.stats.totalRequests')"
           :value="stats ? String(stats.total_requests) : '—'"
-          hint="所选范围内"
+          :hint="$t('usage.stats.inRange')"
         />
         <StatCard
-          label="总 Token"
+          :label="$t('usage.stats.totalTokens')"
           :value="stats ? formatTokens(stats.total_tokens) : '—'"
           :hint="stats ? kpiTokenHint(stats) : undefined"
         />
         <StatCard
-          label="总消费"
+          :label="$t('usage.stats.totalCost')"
           :value="stats ? `$${formatCost(stats.total_actual_cost)}` : '—'"
-          :hint="stats ? `实际 / 标准 $${formatCost(stats.total_cost)}` : undefined"
+          :hint="stats ? $t('usage.stats.costHint', { cost: formatCost(stats.total_cost) }) : undefined"
           accent
         />
         <StatCard
-          label="平均耗时"
+          :label="$t('usage.stats.avgDuration')"
           :value="stats ? formatDuration(stats.average_duration_ms) : '—'"
-          hint="每次请求"
+          :hint="$t('usage.stats.perRequest')"
         />
       </div>
 
@@ -163,7 +183,7 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
       <FilterBar>
         <div>
           <div class="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-faint">
-            API 密钥
+            {{ $t('usage.filters.apiKey') }}
           </div>
           <select
             v-model="filters.api_key_id"
@@ -171,7 +191,7 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
             @change="resetPageAndLoad"
           >
             <option value="">
-              全部密钥
+              {{ $t('usage.filters.allKeys') }}
             </option>
             <option
               v-for="k in keys"
@@ -185,7 +205,7 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
 
         <div>
           <div class="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-faint">
-            开始日期
+            {{ $t('usage.filters.startDate') }}
           </div>
           <input
             v-model="filters.start_date"
@@ -197,7 +217,7 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
 
         <div>
           <div class="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-faint">
-            结束日期
+            {{ $t('usage.filters.endDate') }}
           </div>
           <input
             v-model="filters.end_date"
@@ -228,7 +248,7 @@ function kpiTokenHint(s: NonNullable<typeof stats.value>): string {
             class="ml-2 underline"
             @click="load()"
           >
-            重试
+            {{ $t('common.retry') }}
           </button>
         </div>
 

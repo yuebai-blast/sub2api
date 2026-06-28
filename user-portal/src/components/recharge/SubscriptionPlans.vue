@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { SubscriptionPlan } from '@/api/types'
 import { formatBalance } from '@/utils/format'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   plans: SubscriptionPlan[]
@@ -28,13 +31,13 @@ interface PlanCard {
 function buildLimitLines(plan: SubscriptionPlan): LimitLine[] {
   const lines: LimitLine[] = []
   if (typeof plan.daily_limit_usd === 'number') {
-    lines.push({ label: '日额度', value: `$${formatBalance(plan.daily_limit_usd)}` })
+    lines.push({ label: t('recharge.dailyLimit'), value: `$${formatBalance(plan.daily_limit_usd)}` })
   }
   if (typeof plan.weekly_limit_usd === 'number') {
-    lines.push({ label: '周额度', value: `$${formatBalance(plan.weekly_limit_usd)}` })
+    lines.push({ label: t('recharge.weeklyLimit'), value: `$${formatBalance(plan.weekly_limit_usd)}` })
   }
   if (typeof plan.monthly_limit_usd === 'number') {
-    lines.push({ label: '月额度', value: `$${formatBalance(plan.monthly_limit_usd)}` })
+    lines.push({ label: t('recharge.monthlyLimit'), value: `$${formatBalance(plan.monthly_limit_usd)}` })
   }
   return lines
 }
@@ -88,7 +91,7 @@ const isEmpty = computed(() => props.plans.length === 0)
       </svg>
     </div>
     <p class="text-sm text-subtle">
-      暂无可用订阅套餐
+      {{ $t('recharge.noPlans') }}
     </p>
   </div>
 
@@ -104,7 +107,7 @@ const isEmpty = computed(() => props.plans.length === 0)
     >
       <!-- 套餐名 -->
       <div class="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-faint">
-        {{ plan.group_name ?? '套餐' }}
+        {{ plan.group_name ?? $t('recharge.planFallback') }}
       </div>
       <h3 class="mb-4 font-serif text-[22px] font-medium leading-snug text-text">
         {{ plan.name }}
@@ -134,14 +137,14 @@ const isEmpty = computed(() => props.plans.length === 0)
       <!-- 元信息网格：有效期 + 倍率 -->
       <div class="mb-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl2 bg-muted px-4 py-3 text-[13px]">
         <div class="text-subtle">
-          有效期
+          {{ $t('recharge.validity') }}
         </div>
         <div class="font-medium text-text">
-          {{ plan.validity_days }}{{ plan.validity_unit ?? '天' }}
+          {{ plan.validity_days }}{{ plan.validity_unit ?? $t('recharge.dayUnit') }}
         </div>
         <template v-if="typeof plan.rate_multiplier === 'number'">
           <div class="text-subtle">
-            倍率
+            {{ $t('recharge.rateMultiplier') }}
           </div>
           <div class="font-medium text-text">
             {{ plan.rate_multiplier }}×
@@ -201,7 +204,7 @@ const isEmpty = computed(() => props.plans.length === 0)
         class="w-full cursor-pointer rounded-xl2 bg-accent py-[13px] text-[14px] font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,0.28)] transition-[background,box-shadow,opacity] duration-150 hover:bg-accent/90"
         @click="emit('subscribe', plan)"
       >
-        选择此套餐
+        {{ $t('recharge.selectPlan') }}
       </button>
     </div>
   </div>

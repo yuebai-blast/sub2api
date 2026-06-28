@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   /** 预设金额列表 */
@@ -85,9 +88,9 @@ watch(
 // 校验提示
 const validationMsg = computed(() => {
   const n = customNum.value
-  if (n === null && customInput.value !== '') return '请输入有效金额'
-  if (n !== null && n < props.min) return `最低 $${props.min}`
-  if (n !== null && props.max && n > props.max) return `最高 $${props.max}`
+  if (n === null && customInput.value !== '') return t('recharge.errInvalidAmount')
+  if (n !== null && n < props.min) return t('recharge.minAmount', { min: props.min })
+  if (n !== null && props.max && n > props.max) return t('recharge.maxAmount', { max: props.max })
   return ''
 })
 </script>
@@ -97,9 +100,9 @@ const validationMsg = computed(() => {
     <!-- 标题 -->
     <div class="mb-[18px] flex items-baseline justify-between">
       <h3 class="font-serif text-xl font-medium text-text">
-        选择充值金额
+        {{ $t('recharge.selectRechargeAmount') }}
       </h3>
-      <span class="text-[13px] text-subtle">单位 USD · 实时汇率结算</span>
+      <span class="text-[13px] text-subtle">{{ $t('recharge.unitNote') }}</span>
     </div>
 
     <!-- 预设金额 3 列网格 -->
@@ -122,14 +125,14 @@ const validationMsg = computed(() => {
           class="mt-[7px] text-[11px]"
           :class="bonusFor(v) > 0 ? 'text-pos' : 'text-subtle'"
         >
-          {{ bonusFor(v) > 0 ? `赠 $${bonusFor(v).toFixed(2)}` : '即充即用' }}
+          {{ bonusFor(v) > 0 ? $t('recharge.bonus', { amount: bonusFor(v).toFixed(2) }) : $t('recharge.instantUse') }}
         </div>
       </div>
     </div>
 
     <!-- 自定义金额 -->
     <div class="mb-[10px] mt-6 text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-      自定义金额
+      {{ $t('recharge.customAmount') }}
     </div>
     <div class="relative">
       <span
@@ -137,7 +140,7 @@ const validationMsg = computed(() => {
       >$</span>
       <input
         class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card py-[15px] pl-[38px] pr-4 text-base font-medium text-text outline-none transition-[border-color] duration-[140ms] placeholder:font-normal placeholder:text-faint focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
-        :placeholder="`输入金额（最低 $${min}）`"
+        :placeholder="$t('recharge.amountPlaceholder', { min })"
         :value="customInput"
         inputmode="decimal"
         @input="onCustomInput"

@@ -1,3 +1,5 @@
+import i18n from '@/i18n'
+
 /** 把图片文件压缩到 ≤maxBytes（缩放×质量双重降档），返回 WebP data URL */
 export async function compressToDataUrl(file: File, maxBytes = 20480): Promise<string> {
   const dataUrl = await new Promise<string>((res, rej) => {
@@ -25,5 +27,5 @@ export async function compressToDataUrl(file: File, maxBytes = 20480): Promise<s
       if (out.length * 0.75 <= maxBytes) return out
     }
   }
-  throw new Error('图片过大，请换一张更小的图片')
+  throw new Error(i18n.global.t('profile.form.imageTooLarge'))
 }

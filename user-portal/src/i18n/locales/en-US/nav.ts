@@ -1,0 +1,18 @@
+/** Top bar navigation and user menu (PortalLayout) */
+export default {
+  dashboard: 'Dashboard',
+  usage: 'Usage',
+  keys: 'API Keys',
+  defaultUser: 'User',
+  balance: 'Balance',
+  recharge: 'Recharge',
+  orders: 'My Orders',
+  profile: 'Profile',
+  lightMode: 'Light mode',
+  darkMode: 'Dark mode',
+  language: 'Language',
+  logout: 'Sign out',
+  // Route / browser tab titles
+  login: 'Sign in',
+  register: 'Sign up'
+}

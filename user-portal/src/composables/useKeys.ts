@@ -1,4 +1,5 @@
 import { ref, reactive } from 'vue'
+import i18n from '@/i18n'
 import * as keysApi from '@/api/keys'
 import * as groupsApi from '@/api/groups'
 import type { ApiKey, Group, ApiKeyUsageStat, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
@@ -38,7 +39,7 @@ export function useKeys() {
         usage.value = {}
       }
     } catch (e) {
-      error.value = (e as { message?: string }).message || '加载失败'
+      error.value = (e as { message?: string }).message || i18n.global.t('common.loadFailed')
     } finally {
       loading.value = false
     }

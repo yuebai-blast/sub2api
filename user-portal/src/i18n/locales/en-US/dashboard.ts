@@ -1,0 +1,53 @@
+/** Dashboard domain strings */
+export default {
+  title: 'Dashboard',
+  welcome: "Welcome back, here's an overview of your account.",
+  last7Days: 'Last 7 days',
+  // Balance hero
+  hero: {
+    balanceAvailable: 'Balance · Available',
+    todayCost: "Today's spend ${cost}",
+    recharge: 'Recharge'
+  },
+  // KPI cards
+  kpi: {
+    apiKeys: 'API Keys',
+    enabled: '{count} enabled',
+    todayRequests: "Today's Requests",
+    totalRequests: 'Total {value}',
+    todayTokens: "Today's Tokens",
+    inOut: 'In {input} · Out {output}',
+    avgResponse: 'Avg Response'
+  },
+  // Model distribution
+  model: {
+    title: 'Model Distribution',
+    subtitle: 'Top 5 · by requests',
+    other: 'Other'
+  },
+  // Vendor distribution
+  vendor: {
+    title: 'Vendor Distribution',
+    subtitle: 'Last 7 days · by requests',
+    other: 'Other',
+    requests: 'requests'
+  },
+  // Trend chart
+  trend: {
+    title: 'Token Usage Trend'
+  },
+  // Lifetime strip
+  lifetime: {
+    label: 'Lifetime',
+    tokens: 'Total Tokens',
+    requests: 'Total Requests',
+    cost: 'Total Spend',
+    viewAll: 'View all'
+  },
+  // Quick actions
+  quickActions: {
+    createKey: { title: 'Create API Key', desc: 'Generate a new key' },
+    viewUsage: { title: 'View Usage', desc: 'Detailed usage logs' },
+    redeem: { title: 'Redeem Code', desc: 'Use a redeem code' }
+  }
+}

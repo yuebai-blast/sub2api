@@ -13,6 +13,7 @@ import axios, {
   type AxiosResponse
 } from 'axios'
 import type { ApiResponse } from './types'
+import i18n from '@/i18n'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
@@ -163,6 +164,6 @@ function normalize(error: AxiosError<ApiResponse<unknown>>) {
   return {
     status: error.response?.status,
     code: data?.code ?? error.code,
-    message: data?.message || error.message || '请求失败'
+    message: data?.message || error.message || i18n.global.t('common.requestFailed')
   }
 }

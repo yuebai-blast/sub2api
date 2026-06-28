@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import {
   getDashboardStats,
   getDashboardTrend,
@@ -55,7 +56,7 @@ export function useDashboard() {
       }
     } catch (e) {
       const err = e as { message?: string }
-      error.value = err.message || '加载失败，请稍后重试'
+      error.value = err.message || i18n.global.t('common.loadFailed')
       console.error('加载 Dashboard 失败:', e)
     } finally {
       loading.value = false

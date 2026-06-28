@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Modal from '@/components/ui/Modal.vue'
 import type { Group, CreateApiKeyRequest, ApiKey } from '@/api/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{ open: boolean; groups: Group[] }>()
 const emit = defineEmits<{
@@ -52,7 +55,7 @@ function submit() {
         createdKey.value = nk
       } else {
         // 创建失败：保持表单，提示错误
-        errorMsg.value = '创建失败，请重试'
+        errorMsg.value = t('keys.createFailed')
       }
     }
   )
@@ -75,7 +78,7 @@ async function copyKey() {
 <template>
   <Modal
     :open="open"
-    :title="createdKey ? '密钥已创建' : '创建密钥'"
+    :title="createdKey ? $t('keys.created.title') : $t('keys.createKey')"
     @close="emit('close')"
   >
     <!-- 步骤一：表单 -->
@@ -83,11 +86,11 @@ async function copyKey() {
       <div class="flex flex-col gap-4">
         <!-- 名称 -->
         <div>
-          <label class="mb-1.5 block text-xs font-medium text-text2">名称 <span class="text-neg">*</span></label>
+          <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.form.name') }} <span class="text-neg">*</span></label>
           <input
             v-model="name"
             type="text"
-            placeholder="例如：生产环境"
+            :placeholder="$t('keys.form.namePlaceholder')"
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
             @keydown.enter="submit"
           >
@@ -95,13 +98,13 @@ async function copyKey() {
 
         <!-- 分组 -->
         <div>
-          <label class="mb-1.5 block text-xs font-medium text-text2">分组</label>
+          <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.form.group') }}</label>
           <select
             v-model="groupId"
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
           >
             <option :value="null">
-              不指定分组
+              {{ $t('keys.form.noGroup') }}
             </option>
             <option
               v-for="g in groups"
@@ -115,25 +118,25 @@ async function copyKey() {
 
         <!-- 有效期 -->
         <div>
-          <label class="mb-1.5 block text-xs font-medium text-text2">有效期（天，留空表示永不过期）</label>
+          <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.form.expiryLabel') }}</label>
           <input
             v-model.number="expiresInDays"
             type="number"
             min="1"
-            placeholder="例如：30"
+            :placeholder="$t('keys.form.expiryPlaceholder')"
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
           >
         </div>
 
         <!-- 配额 -->
         <div>
-          <label class="mb-1.5 block text-xs font-medium text-text2">配额（USD，留空表示不限）</label>
+          <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.form.quotaLabel') }}</label>
           <input
             v-model.number="quota"
             type="number"
             min="0"
             step="0.01"
-            placeholder="例如：10.00"
+            :placeholder="$t('keys.form.quotaPlaceholder')"
             class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
           >
         </div>
@@ -152,10 +155,10 @@ async function copyKey() {
     <template v-else>
       <div class="flex flex-col gap-4">
         <div class="rounded-xl2 border border-[#F59E0B]/40 bg-[#F59E0B]/[0.07] px-4 py-3 text-sm text-[#C77800]">
-          请立即保存，关闭后不可再查看
+          {{ $t('keys.created.warning') }}
         </div>
         <div>
-          <label class="mb-1.5 block text-xs font-medium text-text2">您的 API 密钥</label>
+          <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.created.keyLabel') }}</label>
           <div class="flex items-center gap-2">
             <code
               class="flex-1 select-all overflow-x-auto rounded-xl2 border-[1.5px] border-border2 bg-muted px-4 py-3 text-xs font-medium text-text"
@@ -164,7 +167,7 @@ async function copyKey() {
               class="shrink-0 rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-xs font-medium text-text2 transition-colors hover:border-accent hover:text-accent"
               @click="copyKey"
             >
-              {{ copied ? '已复制 ✓' : '复制' }}
+              {{ copied ? $t('common.copied') : $t('common.copy') }}
             </button>
           </div>
         </div>
@@ -178,14 +181,14 @@ async function copyKey() {
           class="rounded-full border border-border px-5 py-2 text-sm font-medium text-text2 transition-colors hover:border-border2 hover:text-text"
           @click="emit('close')"
         >
-          取消
+          {{ $t('common.cancel') }}
         </button>
         <button
           class="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90 disabled:opacity-50"
           :disabled="!name.trim() || submitting"
           @click="submit"
         >
-          {{ submitting ? '创建中…' : '创建密钥' }}
+          {{ submitting ? $t('keys.creating') : $t('keys.createKey') }}
         </button>
       </template>
       <template v-else>
@@ -193,7 +196,7 @@ async function copyKey() {
           class="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(20,194,138,.3)] transition-opacity hover:opacity-90"
           @click="emit('close')"
         >
-          完成
+          {{ $t('common.done') }}
         </button>
       </template>
     </template>

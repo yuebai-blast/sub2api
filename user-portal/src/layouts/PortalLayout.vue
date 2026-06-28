@@ -1,28 +1,37 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
+import { useLocaleStore } from '@/stores/locale'
+import { LOCALE_LABELS, type AppLocale } from '@/i18n'
 import { formatBalance } from '@/utils/format'
 
 const router = useRouter()
+const { t } = useI18n()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
+const localeStore = useLocaleStore()
 
 const menuOpen = ref(false)
 const toggleMenu = () => (menuOpen.value = !menuOpen.value)
 const closeMenu = () => (menuOpen.value = false)
 
-const tabs = [
-  { name: 'Dashboard', label: '仪表盘', to: '/dashboard' },
-  { name: 'Usage', label: '使用记录', to: '/usage' },
-  { name: 'Keys', label: 'API 密钥', to: '/keys' }
-]
+const tabs = computed(() => [
+  { name: 'Dashboard', label: t('nav.dashboard'), to: '/dashboard' },
+  { name: 'Usage', label: t('nav.usage'), to: '/usage' },
+  { name: 'Keys', label: t('nav.keys'), to: '/keys' }
+])
 
-const username = computed(() => authStore.user?.username || '用户')
+const username = computed(() => authStore.user?.username || t('nav.defaultUser'))
 const email = computed(() => authStore.user?.email || '')
 const initial = computed(() => (username.value || '?').charAt(0).toUpperCase())
 const isDark = computed(() => themeStore.mode === 'dark')
+// 语言切换项展示「目标语言」名（点击即切到另一种语言）
+const otherLocaleLabel = computed(
+  () => LOCALE_LABELS[(localeStore.current === 'zh-CN' ? 'en-US' : 'zh-CN') as AppLocale]
+)
 
 function go(path: string) {
   closeMenu()
@@ -116,7 +125,7 @@ onMounted(() => {
 
             <!-- 余额 -->
             <div class="mx-3 mb-2 flex items-center justify-between rounded-[11px] bg-muted px-3.5 py-[11px]">
-              <span class="whitespace-nowrap text-xs font-medium text-subtle">账户余额</span>
+              <span class="whitespace-nowrap text-xs font-medium text-subtle">{{ t('nav.balance') }}</span>
               <span class="num text-[17px] font-medium text-text">${{ formatBalance(authStore.balance) }}</span>
             </div>
 
@@ -125,15 +134,15 @@ onMounted(() => {
             <a
               class="mi font-semibold text-accent"
               @click="go('/recharge')"
-            >充值<span class="text-accent">→</span></a>
+            >{{ t('nav.recharge') }}<span class="text-accent">→</span></a>
             <a
               class="mi"
               @click="go('/orders')"
-            >我的订单<span>→</span></a>
+            >{{ t('nav.orders') }}<span>→</span></a>
             <a
               class="mi"
               @click="go('/profile')"
-            >个人资料<span>→</span></a>
+            >{{ t('nav.profile') }}<span>→</span></a>
 
             <div class="mx-1.5 my-1.5 h-px bg-track" />
 
@@ -141,12 +150,18 @@ onMounted(() => {
               class="mi text-mtext"
               @click="themeStore.toggle()"
             >
-              {{ isDark ? '浅色模式' : '深色模式' }}<span>{{ isDark ? '☀' : '☾' }}</span>
+              {{ isDark ? t('nav.lightMode') : t('nav.darkMode') }}<span>{{ isDark ? '☀' : '☾' }}</span>
+            </a>
+            <a
+              class="mi text-mtext"
+              @click="localeStore.toggle()"
+            >
+              {{ t('nav.language') }}<span>{{ otherLocaleLabel }} ⇄</span>
             </a>
             <a
               class="mi text-neg"
               @click="handleLogout"
-            >退出登录<span class="text-neg">↪</span></a>
+            >{{ t('nav.logout') }}<span class="text-neg">↪</span></a>
           </div>
         </template>
       </div>

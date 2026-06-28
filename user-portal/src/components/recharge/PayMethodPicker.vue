@@ -13,11 +13,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-// 支付方式配置（只渲染 methods 中存在的项）
-const METHOD_CONFIG: Record<string, { label: string; desc: string; color: string; iconType: 'wechat' | 'alipay' | 'stripe' }> = {
-  wxpay: { label: '微信支付', desc: '扫码即时到账', color: '#09BB07', iconType: 'wechat' },
-  alipay: { label: '支付宝', desc: '扫码即时到账', color: '#1677FF', iconType: 'alipay' },
-  stripe: { label: '信用卡 / Stripe', desc: 'Visa · 万事达 · 美国运通', color: '#635BFF', iconType: 'stripe' }
+// 支付方式配置（只渲染 methods 中存在的项；label/desc 走 i18n key，模板内解析）
+const METHOD_CONFIG: Record<string, { labelKey: string; descKey: string; color: string; iconType: 'wechat' | 'alipay' | 'stripe' }> = {
+  wxpay: { labelKey: 'recharge.methodWxpay', descKey: 'recharge.methodScanDesc', color: '#09BB07', iconType: 'wechat' },
+  alipay: { labelKey: 'recharge.methodAlipay', descKey: 'recharge.methodScanDesc', color: '#1677FF', iconType: 'alipay' },
+  stripe: { labelKey: 'recharge.methodStripe', descKey: 'recharge.methodStripeDesc', color: '#635BFF', iconType: 'stripe' }
 }
 
 // 只展示后端实际返回的支付方式，按 METHOD_CONFIG 顺序排（响应式，随 props.methods 变化）
@@ -33,12 +33,12 @@ function pick(key: string) {
     <!-- 标题 -->
     <div class="mb-[18px] flex items-baseline justify-between">
       <h3 class="font-serif text-xl font-medium text-text">
-        支付方式
+        {{ $t('recharge.paymentMethod') }}
       </h3>
       <span class="inline-flex items-center gap-1.5 text-xs text-subtle">
-        由
+        {{ $t('recharge.poweredByPre') }}
         <span class="text-[13px] font-semibold text-[#635BFF]">Stripe</span>
-        安全处理
+        {{ $t('recharge.poweredBySuf') }}
       </span>
     </div>
 
@@ -104,10 +104,10 @@ function pick(key: string) {
         <!-- 文字 -->
         <div class="min-w-0 flex-1">
           <div class="text-sm font-semibold text-text">
-            {{ METHOD_CONFIG[key].label }}
+            {{ $t(METHOD_CONFIG[key].labelKey) }}
           </div>
           <div class="mt-0.5 text-xs text-subtle">
-            {{ METHOD_CONFIG[key].desc }}
+            {{ $t(METHOD_CONFIG[key].descKey) }}
           </div>
         </div>
 
@@ -138,9 +138,9 @@ function pick(key: string) {
       >
         <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
       </svg>
-      微信支付与支付宝均通过
+      {{ $t('recharge.securityNotePre') }}
       <span class="font-semibold text-[#635BFF]">Stripe</span>
-      安全处理，到账与额度一致。
+      {{ $t('recharge.securityNoteSuf') }}
     </div>
   </div>
 </template>

@@ -25,14 +25,14 @@ defineProps<{
 
     <div class="relative">
       <div class="mb-3.5 text-xs font-semibold uppercase tracking-[0.12em] text-faint">
-        账户余额 · 可用
+        {{ $t('dashboard.hero.balanceAvailable') }}
       </div>
       <div class="num text-[64px] font-medium leading-[0.95] tracking-tight text-text">
         ${{ formatBalance(balance) }}
       </div>
       <div class="mt-[18px] inline-block h-1 w-[60px] rounded-sm bg-accent" />
       <div class="mt-[13px] text-sm text-subtle">
-        今日消费 ${{ formatCost(todayCost) }}
+        {{ $t('dashboard.hero.todayCost', { cost: formatCost(todayCost) }) }}
       </div>
     </div>
 
@@ -41,7 +41,7 @@ defineProps<{
         to="/recharge"
         class="inline-block cursor-pointer rounded-full border-[1.5px] border-text bg-card px-7 py-3 text-sm font-semibold text-text"
       >
-        充值 →
+        {{ $t('dashboard.hero.recharge') }} →
       </RouterLink>
     </div>
   </div>

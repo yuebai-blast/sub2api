@@ -1,4 +1,6 @@
 // 平台 / 厂商展示元数据（标签 + 圆点色），与设计稿配色一致
+import i18n from '@/i18n'
+
 export interface PlatformMeta {
   label: string
   color: string
@@ -14,6 +16,6 @@ const MAP: Record<string, PlatformMeta> = {
 }
 
 export function platformMeta(platform?: string | null): PlatformMeta {
-  if (!platform) return { label: '其他', color: '#1A1A1A' }
+  if (!platform) return { label: i18n.global.t('common.other'), color: '#1A1A1A' }
   return MAP[platform.toLowerCase()] || { label: platform, color: '#1A1A1A' }
 }

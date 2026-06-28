@@ -24,20 +24,20 @@ onMounted(loadAll)
     <div class="mb-[34px] flex items-start justify-between">
       <div>
         <h1 class="mb-2 font-serif text-4xl font-medium tracking-tight text-text">
-          仪表盘
+          {{ $t('dashboard.title') }}
         </h1>
         <p class="text-sm text-subtle">
-          欢迎回来，这是您账户的概览。
+          {{ $t('dashboard.welcome') }}
         </p>
       </div>
       <div class="flex items-center gap-2.5">
-        <span class="rounded-full bg-card px-4 py-2.5 text-[13px] font-medium text-text2 shadow-pill">近 7 天</span>
+        <span class="rounded-full bg-card px-4 py-2.5 text-[13px] font-medium text-text2 shadow-pill">{{ $t('dashboard.last7Days') }}</span>
         <button
           class="rounded-full bg-card px-4 py-2.5 text-[13px] font-medium text-text2 shadow-pill hover:text-text"
           :disabled="loading"
           @click="loadAll"
         >
-          刷新
+          {{ $t('common.refresh') }}
         </button>
       </div>
     </div>
@@ -62,7 +62,7 @@ onMounted(loadAll)
         class="mt-4 rounded-full border border-text px-5 py-2 text-sm font-semibold text-text"
         @click="loadAll"
       >
-        重试
+        {{ $t('common.retry') }}
       </button>
     </div>
 

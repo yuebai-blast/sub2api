@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { getCheckoutInfo, createOrder, verifyOrder } from '@/api/payment'
 import { redeem as redeemApi } from '@/api/redeem'
 import type { CheckoutInfoResponse, CreateOrderResult, RedeemResult, SubscriptionPlan } from '@/api/types'
@@ -28,7 +29,7 @@ export function useRecharge() {
       }
       loaded.value = true
     } catch (e) {
-      error.value = (e as { message?: string }).message || '加载失败'
+      error.value = (e as { message?: string }).message || i18n.global.t('common.loadFailed')
     } finally {
       loading.value = false
     }

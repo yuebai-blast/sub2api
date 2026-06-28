@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import PortalLayout from '@/layouts/PortalLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -18,6 +19,7 @@ import { getPlans } from '@/api/payment'
 import { formatBalance } from '@/utils/format'
 import type { CreateOrderResult, SubscriptionPlan } from '@/api/types'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -65,7 +67,7 @@ async function handleSubmit() {
     currentOrder.value = result
     payModalOpen.value = true
   } catch (e) {
-    submitError.value = (e as { message?: string }).message || '下单失败，请稍后重试'
+    submitError.value = (e as { message?: string }).message || t('recharge.errCreateOrder')
   } finally {
     submitting.value = false
   }
@@ -78,7 +80,7 @@ function handlePayModalClose() {
 async function handlePaid() {
   payModalOpen.value = false
   await authStore.fetchUser()
-  successNote.value = '充值成功！余额已更新。'
+  successNote.value = t('recharge.rechargeSuccess')
 }
 
 function handleRedeemed() {
@@ -138,7 +140,7 @@ async function handleConfirmSubscribe() {
     currentOrder.value = result
     payModalOpen.value = true
   } catch (e) {
-    subscribeError.value = (e as { message?: string }).message || '下单失败，请稍后重试'
+    subscribeError.value = (e as { message?: string }).message || t('recharge.errCreateOrder')
   } finally {
     subscribing.value = false
   }
@@ -147,7 +149,7 @@ async function handleConfirmSubscribe() {
 async function handleSubPaid() {
   payModalOpen.value = false
   await authStore.fetchUser()
-  successNote.value = '订阅成功！套餐已生效。'
+  successNote.value = t('recharge.subscribeSuccess')
 }
 
 // ============ 生命周期 ============
@@ -172,15 +174,15 @@ onMounted(async () => {
   <PortalLayout>
     <!-- 页头 -->
     <PageHeader
-      title="充值 / 订阅"
-      subtitle="为账户余额充值，按量计费即充即用。"
+      :title="$t('recharge.pageTitle')"
+      :subtitle="$t('recharge.pageSubtitle')"
     >
       <template #actions>
         <button
           class="rounded-full bg-card px-4 py-2.5 text-[13px] font-medium text-text2 shadow-pill hover:text-text"
           @click="router.push('/orders')"
         >
-          我的订单 →
+          {{ $t('recharge.myOrders') }} →
         </button>
       </template>
     </PageHeader>
@@ -205,7 +207,7 @@ onMounted(async () => {
         class="mt-4 rounded-full border border-text px-5 py-2 text-sm font-semibold text-text"
         @click="load"
       >
-        重试
+        {{ $t('common.retry') }}
       </button>
     </div>
 
@@ -229,7 +231,7 @@ onMounted(async () => {
           "
           @click="activeTab = 0"
         >
-          充值
+          {{ $t('recharge.tabRecharge') }}
         </button>
         <button
           v-if="showSubscription"
@@ -241,7 +243,7 @@ onMounted(async () => {
           "
           @click="activeTab = 1"
         >
-          订阅
+          {{ $t('recharge.tabSubscription') }}
         </button>
       </div>
 
@@ -284,13 +286,13 @@ onMounted(async () => {
             />
             <div class="relative">
               <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">
-                充值账户
+                {{ $t('recharge.rechargeAccount') }}
               </div>
               <div class="mb-[18px] text-[15px] font-semibold text-white">
                 {{ authStore.user?.id ?? '—' }}
               </div>
               <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/50">
-                当前余额
+                {{ $t('recharge.currentBalance') }}
               </div>
               <div class="font-serif text-[40px] font-medium leading-none text-white">
                 ${{ formatBalance(authStore.balance) }}
@@ -324,7 +326,7 @@ onMounted(async () => {
                 :disabled="!canSubmit || submitting"
                 @click="handleSubmit"
               >
-                {{ submitting ? '下单中…' : canSubmit ? '确认支付' : '请选择金额' }}
+                {{ submitting ? $t('recharge.submitting') : canSubmit ? $t('recharge.confirmPay') : $t('recharge.selectAmount') }}
               </button>
             </template>
           </OrderSummary>
@@ -344,14 +346,14 @@ onMounted(async () => {
     <!-- 订阅确认弹窗 -->
     <Modal
       :open="confirmOpen"
-      title="确认订阅"
+      :title="$t('recharge.confirmSubscribe')"
       @close="handleConfirmClose"
     >
       <template v-if="selectedPlan">
         <!-- 套餐摘要 -->
         <div class="mb-5 rounded-xl2 bg-muted px-5 py-4">
           <div class="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-faint">
-            {{ selectedPlan.group_name ?? '套餐' }}
+            {{ selectedPlan.group_name ?? $t('recharge.planFallback') }}
           </div>
           <div class="mb-3 font-serif text-xl font-medium text-text">
             {{ selectedPlan.name }}
@@ -368,7 +370,7 @@ onMounted(async () => {
             </span>
           </div>
           <div class="mt-2 text-[13px] text-subtle">
-            有效期：{{ selectedPlan.validity_days }}{{ selectedPlan.validity_unit ?? '天' }}
+            {{ $t('recharge.validityPrefix') }}{{ selectedPlan.validity_days }}{{ selectedPlan.validity_unit ?? $t('recharge.dayUnit') }}
           </div>
         </div>
 
@@ -394,7 +396,7 @@ onMounted(async () => {
             class="flex-1 rounded-xl2 border border-border2 py-3 text-sm font-medium text-text2 hover:bg-muted"
             @click="handleConfirmClose"
           >
-            取消
+            {{ $t('common.cancel') }}
           </button>
           <button
             class="flex-1 rounded-xl2 py-3 text-sm font-semibold text-white transition-[background,opacity] duration-150"
@@ -406,7 +408,7 @@ onMounted(async () => {
             :disabled="!method || subscribing"
             @click="handleConfirmSubscribe"
           >
-            {{ subscribing ? '下单中…' : '确认支付' }}
+            {{ subscribing ? $t('recharge.submitting') : $t('recharge.confirmPay') }}
           </button>
         </div>
       </template>

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ModelStat } from '@/api/types'
 import { formatNumber, percent } from '@/utils/format'
 
 const props = defineProps<{ models: ModelStat[] }>()
+
+const { t } = useI18n()
 
 // 调色板（与设计稿一致）：前 4 个有色，"其他"用灰
 const COLORS = ['var(--accent)', 'var(--ink)', '#0E8F66', '#D8362C', '#B0ACA2']
@@ -28,7 +31,7 @@ const rows = computed<Row[]>(() => {
     pct: percent(m.requests || 0, total)
   }))
   if (restReq > 0) {
-    list.push({ label: '其他', requests: restReq, color: COLORS[4], pct: percent(restReq, total) })
+    list.push({ label: t('dashboard.model.other'), requests: restReq, color: COLORS[4], pct: percent(restReq, total) })
   }
   return list
 })
@@ -38,16 +41,16 @@ const rows = computed<Row[]>(() => {
   <div class="flex flex-col">
     <div class="mb-3.5 flex items-baseline justify-between">
       <h3 class="font-serif text-xl font-medium text-text">
-        模型分布
+        {{ $t('dashboard.model.title') }}
       </h3>
-      <span class="text-xs font-medium text-subtle">Top 5 · 按请求数</span>
+      <span class="text-xs font-medium text-subtle">{{ $t('dashboard.model.subtitle') }}</span>
     </div>
     <div class="flex flex-1 flex-col justify-between gap-[18px] rounded-xl3 bg-card px-7 py-[26px] shadow-card">
       <p
         v-if="rows.length === 0"
         class="text-sm text-subtle"
       >
-        暂无数据
+        {{ $t('common.noData') }}
       </p>
       <div
         v-for="row in rows"

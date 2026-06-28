@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Modal from '@/components/ui/Modal.vue'
 import { verifyOrder } from '@/api/payment'
+
+const { t } = useI18n()
 
 /**
  * 弹窗接受两类订单，统一用此类型描述：
@@ -51,7 +54,7 @@ const qrImageUrl = computed(() => {
 
 // 倒计时格式
 const countdownLabel = computed(() => {
-  if (countdown.value <= 0) return '已过期'
+  if (countdown.value <= 0) return t('payment.expired')
   const m = Math.floor(countdown.value / 60)
   const s = countdown.value % 60
   return `${m}:${String(s).padStart(2, '0')}`
@@ -61,13 +64,13 @@ const countdownLabel = computed(() => {
 const statusLabel = computed(() => {
   const s = status.value || props.order?.status || ''
   const map: Record<string, string> = {
-    pending: '等待支付',
-    paid: '支付成功',
-    completed: '支付成功',
-    failed: '支付失败',
-    cancelled: '已取消'
+    pending: t('payment.statusPending'),
+    paid: t('payment.statusPaid'),
+    completed: t('payment.statusPaid'),
+    failed: t('payment.statusFailed'),
+    cancelled: t('payment.statusCancelled')
   }
-  return map[s] ?? '等待支付'
+  return map[s] ?? t('payment.statusPending')
 })
 
 function stopPoll() {
@@ -129,7 +132,7 @@ async function handleManualVerify() {
   try {
     await doVerify(props.order.out_trade_no)
   } catch (e) {
-    errMsg.value = (e as { message?: string }).message || '查询失败'
+    errMsg.value = (e as { message?: string }).message || t('payment.errVerify')
   } finally {
     verifying.value = false
   }
@@ -174,7 +177,7 @@ onBeforeUnmount(() => {
 <template>
   <Modal
     :open="open"
-    title="扫码支付"
+    :title="$t('payment.scanToPay')"
     @close="emit('close')"
   >
     <div
@@ -188,11 +191,11 @@ onBeforeUnmount(() => {
       >
         <img
           :src="qrImageUrl"
-          alt="支付二维码"
+          :alt="$t('payment.qrAlt')"
           class="h-[200px] w-[200px] rounded-xl2 border border-border2 bg-muted"
         >
         <p class="text-sm text-text3">
-          请使用微信 / 支付宝扫码支付
+          {{ $t('payment.scanHint') }}
         </p>
 
         <!-- 倒计时 -->
@@ -214,7 +217,7 @@ onBeforeUnmount(() => {
             />
             <path d="M12 6v6l4 2" />
           </svg>
-          二维码有效期：{{ countdownLabel }}
+          {{ $t('payment.qrValidity', { time: countdownLabel }) }}
         </div>
       </div>
 
@@ -223,7 +226,7 @@ onBeforeUnmount(() => {
         v-else
         class="py-4 text-sm text-text3"
       >
-        正在跳转至支付页面，请稍候…
+        {{ $t('payment.redirecting') }}
       </div>
 
       <!-- 状态 -->
@@ -252,14 +255,14 @@ onBeforeUnmount(() => {
         class="rounded-xl2 border border-border2 px-4 py-2 text-sm font-medium text-text3 hover:border-border hover:text-text"
         @click="emit('close')"
       >
-        关闭
+        {{ $t('common.close') }}
       </button>
       <button
         class="rounded-xl2 bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         :disabled="verifying"
         @click="handleManualVerify"
       >
-        {{ verifying ? '查询中…' : '我已支付 / 刷新' }}
+        {{ verifying ? $t('payment.verifying') : $t('payment.paidRefresh') }}
       </button>
     </template>
   </Modal>

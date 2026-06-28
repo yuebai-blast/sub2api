@@ -20,17 +20,17 @@ defineProps<{ rows: UsageLog[] }>()
         class="grid gap-[14px] border-b border-track px-[26px] py-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-faint"
         style="grid-template-columns: 0.7fr 1.3fr 0.8fr 1fr 0.7fr 0.8fr 1fr 0.9fr 0.7fr 0.7fr 1.1fr"
       >
-        <div>密钥</div>
-        <div>模型</div>
-        <div>强度</div>
-        <div>端点</div>
-        <div>类型</div>
-        <div>计费</div>
-        <div>Token</div>
-        <div>费用</div>
-        <div>首 Token</div>
-        <div>耗时</div>
-        <div>时间 · UA</div>
+        <div>{{ $t('usage.table.key') }}</div>
+        <div>{{ $t('usage.table.model') }}</div>
+        <div>{{ $t('usage.table.effort') }}</div>
+        <div>{{ $t('usage.table.endpoint') }}</div>
+        <div>{{ $t('usage.table.type') }}</div>
+        <div>{{ $t('usage.table.billing') }}</div>
+        <div>{{ $t('usage.table.token') }}</div>
+        <div>{{ $t('usage.table.cost') }}</div>
+        <div>{{ $t('usage.table.firstToken') }}</div>
+        <div>{{ $t('usage.table.duration') }}</div>
+        <div>{{ $t('usage.table.timeUa') }}</div>
       </div>
 
       <!-- 行 -->
@@ -72,7 +72,7 @@ defineProps<{ rows: UsageLog[] }>()
         <!-- 类型（流式/同步） -->
         <div>
           <span class="rounded-[6px] bg-[#2A6FDB]/[0.10] px-2.5 py-[3px] text-[11px] font-semibold text-[#2A6FDB]">
-            {{ row.stream ? '流式' : '同步' }}
+            {{ row.stream ? $t('usage.table.stream') : $t('usage.table.sync') }}
           </span>
         </div>
 
@@ -120,7 +120,7 @@ defineProps<{ rows: UsageLog[] }>()
         v-if="rows.length === 0"
         class="px-[26px] py-16 text-center text-sm text-subtle"
       >
-        暂无使用记录
+        {{ $t('usage.empty') }}
       </div>
     </div>
   </div>

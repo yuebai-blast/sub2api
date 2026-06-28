@@ -1,0 +1,71 @@
+/** 充值 / 订阅域（RechargeView 及 recharge/* 组件） */
+export default {
+  // —— 页头 ——
+  pageTitle: '充值 / 订阅',
+  pageSubtitle: '为账户余额充值，按量计费即充即用。',
+  myOrders: '我的订单',
+  // —— 顶部分段 / 结果提示 ——
+  tabRecharge: '充值',
+  tabSubscription: '订阅',
+  rechargeSuccess: '充值成功！余额已更新。',
+  subscribeSuccess: '订阅成功！套餐已生效。',
+  // —— 账户卡 ——
+  rechargeAccount: '充值账户',
+  currentBalance: '当前余额',
+  // —— 提交按钮 / 下单 ——
+  confirmPay: '确认支付',
+  selectAmount: '请选择金额',
+  submitting: '下单中…',
+  errCreateOrder: '下单失败，请稍后重试',
+  // —— 订阅确认弹窗 ——
+  confirmSubscribe: '确认订阅',
+  planFallback: '套餐',
+  validityPrefix: '有效期：',
+  dayUnit: '天',
+  // —— AmountPicker ——
+  selectRechargeAmount: '选择充值金额',
+  unitNote: '单位 USD · 实时汇率结算',
+  bonus: '赠 ${amount}',
+  instantUse: '即充即用',
+  customAmount: '自定义金额',
+  amountPlaceholder: '输入金额（最低 ${min}）',
+  errInvalidAmount: '请输入有效金额',
+  minAmount: '最低 ${min}',
+  maxAmount: '最高 ${max}',
+  // —— OrderSummary ——
+  orderDetails: '订单明细',
+  rechargeAmount: '充值金额',
+  bonusCredit: '赠送额度',
+  balanceAfter: '到账后余额',
+  amountDue: '应付金额',
+  amountDueNote: '实际应付以下单结果为准',
+  stripeSecured: '支付由 Stripe 加密保障',
+  // —— PayMethodPicker ——
+  paymentMethod: '支付方式',
+  poweredByPre: '由',
+  poweredBySuf: '安全处理',
+  securityNotePre: '微信支付与支付宝均通过',
+  securityNoteSuf: '安全处理，到账与额度一致。',
+  methodWxpay: '微信支付',
+  methodAlipay: '支付宝',
+  methodStripe: '信用卡 / Stripe',
+  methodScanDesc: '扫码即时到账',
+  methodStripeDesc: 'Visa · 万事达 · 美国运通',
+  // —— RedeemCard ——
+  redeemCode: '兑换码',
+  redeemPlaceholder: '输入兑换码',
+  redeem: '兑换',
+  redeeming: '兑换中…',
+  errRedeem: '兑换失败，请检查兑换码是否正确',
+  redeemSuccess: '兑换成功！',
+  newBalance: '新余额：',
+  newConcurrency: '并发数：',
+  // —— SubscriptionPlans ——
+  dailyLimit: '日额度',
+  weeklyLimit: '周额度',
+  monthlyLimit: '月额度',
+  noPlans: '暂无可用订阅套餐',
+  validity: '有效期',
+  rateMultiplier: '倍率',
+  selectPlan: '选择此套餐'
+}

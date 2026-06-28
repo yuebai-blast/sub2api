@@ -10,46 +10,46 @@ defineProps<{ stats: UserDashboardStats }>()
     <!-- API 密钥 -->
     <div class="rounded-xl2 bg-card p-[22px] shadow-soft">
       <div class="mb-4 text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-        API 密钥
+        {{ $t('dashboard.kpi.apiKeys') }}
       </div>
       <div class="num text-[34px] font-medium leading-none text-text">
         {{ stats.total_api_keys ?? 0 }}
       </div>
       <div class="mt-2.5 text-xs text-subtle">
-        {{ stats.active_api_keys ?? 0 }} 个已启用
+        {{ $t('dashboard.kpi.enabled', { count: stats.active_api_keys ?? 0 }) }}
       </div>
     </div>
 
     <!-- 今日请求 -->
     <div class="rounded-xl2 bg-card p-[22px] shadow-soft">
       <div class="mb-4 text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-        今日请求
+        {{ $t('dashboard.kpi.todayRequests') }}
       </div>
       <div class="num text-[34px] font-medium leading-none text-text">
         {{ formatNumber(stats.today_requests ?? 0) }}
       </div>
       <div class="mt-2.5 text-xs text-subtle">
-        累计 {{ formatNumber(stats.total_requests ?? 0) }}
+        {{ $t('dashboard.kpi.totalRequests', { value: formatNumber(stats.total_requests ?? 0) }) }}
       </div>
     </div>
 
     <!-- 今日 Token -->
     <div class="rounded-xl2 bg-card p-[22px] shadow-soft">
       <div class="mb-4 text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-        今日 Token
+        {{ $t('dashboard.kpi.todayTokens') }}
       </div>
       <div class="num text-[34px] font-medium leading-none text-text">
         {{ formatTokens(stats.today_tokens ?? 0) }}
       </div>
       <div class="mt-2.5 text-xs text-subtle">
-        入 {{ formatTokens(stats.today_input_tokens ?? 0) }} · 出 {{ formatTokens(stats.today_output_tokens ?? 0) }}
+        {{ $t('dashboard.kpi.inOut', { input: formatTokens(stats.today_input_tokens ?? 0), output: formatTokens(stats.today_output_tokens ?? 0) }) }}
       </div>
     </div>
 
     <!-- 平均响应 -->
     <div class="rounded-xl2 bg-card p-[22px] shadow-soft">
       <div class="mb-4 text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
-        平均响应
+        {{ $t('dashboard.kpi.avgResponse') }}
       </div>
       <div class="num text-[34px] font-medium leading-none text-text">
         {{ formatDuration(stats.average_duration_ms ?? 0) }}

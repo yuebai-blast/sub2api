@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { getMyOrders, cancelOrder } from '@/api/payment'
 import type { PaymentOrder } from '@/api/types'
 
@@ -26,7 +27,7 @@ export function useOrders() {
       total.value = res.total
       loaded.value = true
     } catch (e) {
-      error.value = (e as { message?: string }).message || '加载失败'
+      error.value = (e as { message?: string }).message || i18n.global.t('common.loadFailed')
     } finally {
       loading.value = false
     }

@@ -1,4 +1,5 @@
 // 数值/金额/Token/时长格式化（与主前端展示口径一致）
+import i18n from '@/i18n'
 
 const usd2 = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
@@ -82,16 +83,18 @@ export function formatReasoningEffort(e: string | null | undefined): string {
   return map[e] ?? (e.charAt(0).toUpperCase() + e.slice(1))
 }
 
-/** 订单状态 → 中文 + StatusBadge variant */
+/** 订单状态 → 展示文案 + StatusBadge variant（文案随语言切换） */
 export function orderStatusMeta(s: string): { label: string; variant: string } {
-  const m: Record<string, { label: string; variant: string }> = {
-    pending: { label: '待支付', variant: 'pending' },
-    paid: { label: '已支付', variant: 'paid' },
-    completed: { label: '已完成', variant: 'paid' },
-    failed: { label: '失败', variant: 'neg' },
-    refunded: { label: '已退款', variant: 'muted' }
+  const variants: Record<string, string> = {
+    pending: 'pending',
+    paid: 'paid',
+    completed: 'paid',
+    failed: 'neg',
+    refunded: 'muted'
   }
-  return m[s] ?? { label: s, variant: 'muted' }
+  const variant = variants[s]
+  if (!variant) return { label: s, variant: 'muted' }
+  return { label: i18n.global.t(`orders.status.${s}`), variant }
 }
 
 /** 注册月份 Jun 2026 */
@@ -115,5 +118,5 @@ export function cacheHitRate(cacheRead: number, input: number): number {
 
 /** 计费类型：0=按量，1=订阅 */
 export function formatBillingType(t: number): string {
-  return t === 1 ? '订阅' : '按量'
+  return i18n.global.t(t === 1 ? 'usage.billingType.subscription' : 'usage.billingType.payg')
 }
