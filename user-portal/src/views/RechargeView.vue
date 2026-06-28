@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import PortalLayout from '@/layouts/PortalLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -19,6 +19,7 @@ import { formatBalance } from '@/utils/format'
 import type { CreateOrderResult, SubscriptionPlan } from '@/api/types'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 
@@ -158,6 +159,12 @@ onMounted(async () => {
   if (showSubscription.value) {
     await ensurePlans()
   }
+  // 带 #redeem 锚点进入时（如仪表盘「兑换码充值」），切到充值 tab 并滚动到兑换码区
+  if (route.hash === '#redeem') {
+    activeTab.value = 0
+    await nextTick()
+    document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 })
 </script>
 
@@ -258,7 +265,12 @@ onMounted(async () => {
             :methods="checkout.methods"
           />
 
-          <RedeemCard @redeemed="handleRedeemed" />
+          <div
+            id="redeem"
+            class="scroll-mt-24"
+          >
+            <RedeemCard @redeemed="handleRedeemed" />
+          </div>
         </div>
 
         <!-- 右列（sticky） -->

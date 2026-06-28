@@ -37,11 +37,12 @@ defineProps<{
     </div>
 
     <div class="relative">
-      <span
+      <RouterLink
+        to="/recharge"
         class="inline-block cursor-pointer rounded-full border-[1.5px] border-text bg-card px-7 py-3 text-sm font-semibold text-text"
       >
         充值 →
-      </span>
+      </RouterLink>
     </div>
   </div>
 </template>

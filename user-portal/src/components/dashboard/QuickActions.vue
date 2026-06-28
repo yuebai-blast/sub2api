@@ -6,7 +6,7 @@ const router = useRouter()
 const actions = [
   { title: '创建 API 密钥', desc: '生成新的密钥', to: '/keys' },
   { title: '查看使用记录', desc: '详细使用日志', to: '/usage' },
-  { title: '兑换码充值', desc: '使用兑换码', to: '/dashboard' }
+  { title: '兑换码充值', desc: '使用兑换码', to: '/recharge#redeem' }
 ]
 
 function go(to: string) {
