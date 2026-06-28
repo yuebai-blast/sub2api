@@ -25,12 +25,19 @@ export default {
     subtitle: 'Top 5 · by requests',
     other: 'Other'
   },
-  // Vendor distribution
+  // Vendor distribution（APPLICATION 模式下标题改用 titleApp，各格名称改用 app.* 按平台 key 取）
   vendor: {
     title: 'Vendor Distribution',
+    titleApp: 'Application Distribution',
     subtitle: 'Last 7 days · by requests',
     other: 'Other',
-    requests: 'requests'
+    requests: 'requests',
+    // APPLICATION 模式下各格展示名（key 与平台一致）
+    app: {
+      anthropic: 'Text',
+      openai: 'Vision',
+      gemini: 'Voice'
+    }
   },
   // Trend chart
   trend: {

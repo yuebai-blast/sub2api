@@ -5,7 +5,14 @@ import { formatNumber, percent } from '@/utils/format'
 
 const props = defineProps<{ byPlatform: PlatformDashboardStats[] }>()
 
+// 分布卡片文案模式：MODEL=模型厂商分布（Claude/GPT/Gemini）；APPLICATION=应用类型分布（Text/Vision/Voice）
+// 由发版构建时的 VITE_PORTAL_DISTRIBUTION_MODE 决定，缺省为 MODEL
+const IS_APPLICATION = (import.meta.env.VITE_PORTAL_DISTRIBUTION_MODE ?? 'MODEL').trim().toUpperCase() === 'APPLICATION'
+// 标题随模式切换：MODEL → 模型厂商分布；APPLICATION → 应用类型分布
+const TITLE_KEY = IS_APPLICATION ? 'dashboard.vendor.titleApp' : 'dashboard.vendor.title'
+
 // 固定 4 宫格面板样式（薄荷主调 / 标准强度），顺序：Claude / GPT / Gemini / 其他
+// name 为 MODEL 模式展示名（品牌名，两端均英文不翻译）；APPLICATION 模式展示名走 i18n（dashboard.vendor.app.<key>）
 interface Panel {
   key: string
   name: string
@@ -50,7 +57,7 @@ const cells = computed(() => {
   <div class="flex flex-col">
     <div class="mb-3.5 flex items-baseline justify-between">
       <h3 class="font-serif text-xl font-medium text-text">
-        {{ $t('dashboard.vendor.title') }}
+        {{ $t(TITLE_KEY) }}
       </h3>
       <span class="text-xs font-medium text-subtle">{{ $t('dashboard.vendor.subtitle') }}</span>
     </div>
@@ -74,7 +81,7 @@ const cells = computed(() => {
           class="relative text-[13px] font-semibold"
           :style="{ color: cell.nameColor }"
         >
-          {{ cell.key === '__other__' ? $t('dashboard.vendor.other') : cell.name }}
+          {{ cell.key === '__other__' ? $t('dashboard.vendor.other') : (IS_APPLICATION ? $t(`dashboard.vendor.app.${cell.key}`) : cell.name) }}
         </div>
         <div class="relative">
           <div

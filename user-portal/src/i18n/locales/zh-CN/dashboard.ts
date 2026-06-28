@@ -25,12 +25,19 @@ export default {
     subtitle: 'Top 5 · 按请求数',
     other: '其他'
   },
-  // 模型厂商分布
+  // 模型厂商分布（APPLICATION 模式下标题改用 titleApp，各格名称改用 app.* 按平台 key 取）
   vendor: {
     title: '模型厂商分布',
+    titleApp: '应用类型分布',
     subtitle: '近 7 天 · 按请求数',
     other: '其他',
-    requests: '请求'
+    requests: '请求',
+    // APPLICATION 模式下各格展示名（key 与平台一致）
+    app: {
+      anthropic: '文本',
+      openai: '视觉',
+      gemini: '语音'
+    }
   },
   // 趋势图
   trend: {
