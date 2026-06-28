@@ -6,6 +6,8 @@ export default {
   loginHeadlineMark: ' API 接口',
   loginHeadlineEnd: '。',
   loginBrandDesc: 'Claude、GPT、Gemini 同一把密钥统一调用，按量计费，会话保持，告别频繁报错。',
+  // APPLICATION 分发模式下的文案（VITE_PORTAL_DISTRIBUTION_MODE=APPLICATION）：把模型厂商名替换为应用能力名
+  loginBrandDescApp: 'Text、Vision、Voice 同一把密钥统一调用，按量计费，会话保持，告别频繁报错。',
   moreComing: '更多即将推出',
   // —— 登录表单 ——
   welcomeBack: '欢迎回来',

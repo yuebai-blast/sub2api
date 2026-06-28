@@ -6,6 +6,8 @@ export default {
   loginHeadlineMark: ' API',
   loginHeadlineEnd: '.',
   loginBrandDesc: 'Call Claude, GPT and Gemini with a single key. Pay as you go, keep sessions alive, and say goodbye to constant errors.',
+  // APPLICATION 分发模式下的文案（VITE_PORTAL_DISTRIBUTION_MODE=APPLICATION）：把模型厂商名替换为应用能力名
+  loginBrandDescApp: 'Call Text, Vision and Voice with a single key. Pay as you go, keep sessions alive, and say goodbye to constant errors.',
   moreComing: 'More coming soon',
   // —— Login form ——
   welcomeBack: 'Welcome back',

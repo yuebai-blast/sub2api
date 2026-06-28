@@ -10,6 +10,14 @@ const router = useRouter()
 const { t } = useI18n()
 const authStore = useAuthStore()
 
+// 分发模式：MODEL=模型厂商（Claude/GPT/Gemini）；APPLICATION=应用能力（Text/Vision/Voice）
+// 由发版构建时的 VITE_PORTAL_DISTRIBUTION_MODE 决定，缺省 MODEL；与仪表盘分布卡片保持一致
+const IS_APPLICATION = (import.meta.env.VITE_PORTAL_DISTRIBUTION_MODE ?? 'MODEL').trim().toUpperCase() === 'APPLICATION'
+// 左侧品牌区标语：APPLICATION 模式改用应用能力文案
+const brandDescKey = IS_APPLICATION ? 'auth.loginBrandDescApp' : 'auth.loginBrandDesc'
+// 模型/能力标签：MODEL → 厂商名；APPLICATION → 应用能力名（两端均英文不翻译）
+const brandTags = IS_APPLICATION ? ['Text', 'Vision', 'Voice'] : ['Claude', 'GPT', 'Gemini']
+
 const account = ref('')
 const password = ref('')
 const remember = ref(true)
@@ -77,15 +85,17 @@ async function onSubmit() {
           /></span>{{ t('auth.loginHeadlineEnd') }}
         </h2>
         <p class="mt-5 text-[15px] leading-relaxed text-text3">
-          {{ t('auth.loginBrandDesc') }}
+          {{ t(brandDescKey) }}
         </p>
       </div>
 
-      <!-- 模型标签 -->
+      <!-- 模型/能力标签：随分发模式切换 -->
       <div class="relative flex flex-wrap gap-2.5">
-        <span class="rounded-full border border-border bg-card px-3.5 py-[7px] text-xs font-medium text-text2">● Claude</span>
-        <span class="rounded-full border border-border bg-card px-3.5 py-[7px] text-xs font-medium text-text2">● GPT</span>
-        <span class="rounded-full border border-border bg-card px-3.5 py-[7px] text-xs font-medium text-text2">● Gemini</span>
+        <span
+          v-for="tag in brandTags"
+          :key="tag"
+          class="rounded-full border border-border bg-card px-3.5 py-[7px] text-xs font-medium text-text2"
+        >● {{ tag }}</span>
         <span class="rounded-full border border-dashed border-border2 px-3.5 py-[7px] text-xs font-medium text-faint">{{ t('auth.moreComing') }}</span>
       </div>
     </div>
