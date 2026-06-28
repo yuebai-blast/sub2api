@@ -3,6 +3,7 @@ export default {
   dashboard: 'Dashboard',
   usage: 'Usage',
   keys: 'API Keys',
+  pricing: 'Pricing',
   defaultUser: 'User',
   balance: 'Balance',
   recharge: 'Recharge',

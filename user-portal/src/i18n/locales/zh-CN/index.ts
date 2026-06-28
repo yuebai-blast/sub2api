@@ -12,6 +12,7 @@ import recharge from './recharge'
 import orders from './orders'
 import profile from './profile'
 import payment from './payment'
+import pricing from './pricing'
 import ui from './ui'
 
 const zhCN = {
@@ -25,6 +26,7 @@ const zhCN = {
   orders,
   profile,
   payment,
+  pricing,
   ui
 }
 

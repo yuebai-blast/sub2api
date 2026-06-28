@@ -3,6 +3,7 @@ export default {
   dashboard: '仪表盘',
   usage: '使用记录',
   keys: 'API 密钥',
+  pricing: '定价',
   defaultUser: '用户',
   balance: '账户余额',
   recharge: '充值',
