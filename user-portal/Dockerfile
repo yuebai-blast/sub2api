@@ -18,8 +18,8 @@ RUN mise trust && mise install node pnpm
 COPY user-portal/package.json user-portal/pnpm-lock.yaml ./user-portal/
 RUN cd user-portal && pnpm install --frozen-lockfile
 COPY user-portal/ ./user-portal/
-# 发版走 build:prod（vite build --mode prod），加载 user-portal/.env.prod（含 VITE_PORTAL_LOCALE）
-RUN cd user-portal && pnpm run build:prod
+# 发版构建：vite build --mode prod（加载 user-portal/.env.prod，含 VITE_PORTAL_LOCALE）
+RUN cd user-portal && pnpm exec vue-tsc -b && pnpm exec vite build --mode prod
 
 # -----------------------------------------------------------------------------
 FROM nginx:1.27-alpine AS runtime

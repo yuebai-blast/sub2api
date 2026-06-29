@@ -36,13 +36,23 @@ run = [
 ]
 
 [tasks.build-user-portal]
-description = "user-portal 类型检查 + 本地构建到 dist/（vue-tsc -b && vite build，读 .env.local，不含发版 .env.prod；发版构建走 image-user-portal）"
+description = "user-portal 类型检查 + 构建到 dist/（--env 默认 local：裸 vite build 读 .env.local；prod：vite build --mode prod 读 .env.prod）"
+usage = '''
+flag "-e --env <env>" help="构建环境：local（默认，读 .env.local）/ prod（读 .env.prod）" default="local"
+'''
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = [
-  "pnpm exec vue-tsc -b",
-  "pnpm exec vite build",
-]
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm exec vue-tsc -b
+# vite 禁止 mode 名为 "local"（与 .env.local 后缀冲突），故 local 走裸 build（默认 production mode，仍加载 .env.local）
+case "${usage_env}" in
+  local) pnpm exec vite build ;;
+  prod)  pnpm exec vite build --mode prod ;;
+  *) echo "未知 --env ${usage_env}（仅支持 local / prod）" >&2; exit 1 ;;
+esac
+'''
 
 # ---------- 本地运行 ----------
 [tasks.run-backend]
