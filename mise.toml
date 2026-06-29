@@ -32,7 +32,7 @@ depends = ["install-frontend"]
 run = [
   "pnpm --dir frontend exec vue-tsc -b",
   "pnpm --dir frontend exec vite build",
-  "cd backend && CGO_ENABLED=0 go build -tags embed -trimpath -o bin/server ./cmd/server",
+  "cd backend && CGO_ENABLED=0 go build -tags embed -ldflags='-s -w' -trimpath -o bin/server ./cmd/server",
 ]
 
 [tasks.build-user-portal]
@@ -127,6 +127,28 @@ run = "pnpm exec vue-tsc --noEmit"
 description = "本地端到端测试（go test -tags=e2e ./internal/integration/...）"
 dir = "backend"
 run = "go test -tags=e2e -v -timeout=300s ./internal/integration/..."
+
+# ---------- 安全扫描 ----------
+[tasks.audit-backend]
+description = "后端依赖漏洞扫描（govulncheck）"
+dir = "backend"
+run = "go run golang.org/x/vuln/cmd/govulncheck@latest ./..."
+
+[tasks.audit-frontend]
+description = "frontend 依赖漏洞审计（pnpm audit + 按 .github/audit-exceptions.yml 过滤例外）"
+depends = ["install-frontend"]
+# 例外过滤脚本为纯标准库 Python，直接用系统 python3（不纳入 mise 工具链，避免拖累其它 task 与镜像构建）
+# audit 结果写临时文件，避免污染工作区（不写入任何被跟踪/常驻文件）
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+audit_json="$(mktemp)"
+trap 'rm -f "${audit_json}"' EXIT
+pnpm --dir frontend audit --prod --audit-level=high --json > "${audit_json}" || true
+python3 tools/check_pnpm_audit_exceptions.py \
+  --audit "${audit_json}" \
+  --exceptions .github/audit-exceptions.yml
+'''
 
 # ---------- 镜像 ----------
 [tasks.image-backend]

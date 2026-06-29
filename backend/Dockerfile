@@ -13,6 +13,8 @@ FROM debian:13-slim AS build
 ENV MISE_VERSION=2026.6.0
 ENV MISE_DATA_DIR=/mise MISE_CONFIG_DIR=/mise MISE_CACHE_DIR=/mise/cache \
     MISE_INSTALL_PATH=/usr/local/bin/mise PATH=/mise/shims:$PATH
+# mise run 默认会自动安装 mise.toml 全部 [tools]；本镜像只显式装所需工具，故关掉以免拉入 golangci-lint 等
+ENV MISE_TASK_RUN_AUTO_INSTALL=false
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl git ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
@@ -33,27 +35,14 @@ RUN cd backend && go mod download
 COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
 RUN cd frontend && pnpm install --frozen-lockfile
 
-# 源码后 COPY。先放后端源码，再 build 前端（其 outDir 写入 backend/internal/web/dist，
+# 源码后 COPY（先放后端源码，前端 build 的 outDir 写入 backend/internal/web/dist，
 # 避免被后端源码 COPY 覆盖）。LegalDocumentView.vue 需 docs/legal/*.md。
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 COPY docs/legal/ ./docs/legal/
-RUN cd frontend && pnpm run build
-
-# 编译后端（embed 内嵌前端）；VERSION 优先级：build arg > cmd/server/VERSION
-ARG VERSION
-ARG COMMIT=docker
-ARG DATE
-RUN cd backend && \
-    VERSION_VALUE="${VERSION}" && \
-    if [ -z "${VERSION_VALUE}" ]; then VERSION_VALUE="$(tr -d '\r\n' < ./cmd/server/VERSION)"; fi && \
-    DATE_VALUE="${DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}" && \
-    CGO_ENABLED=0 GOOS=linux go build \
-      -tags embed \
-      -ldflags="-s -w -X main.Version=${VERSION_VALUE} -X main.Commit=${COMMIT} -X main.Date=${DATE_VALUE} -X main.BuildType=release" \
-      -trimpath \
-      -o /app/mintpop-api \
-      ./cmd/server
+# 构建：前端 build（内嵌）+ 后端 go build -tags embed，产物 backend/bin/server。
+# 版本号由内嵌 cmd/server/VERSION 文件提供，不再注入 Commit/Date/BuildType。
+RUN mise run build-backend
 
 # -----------------------------------------------------------------------------
 # 运行阶段：debian-slim + PGDG apt 装 pg-client
@@ -80,7 +69,7 @@ RUN apt-get update \
 # 以 root 运行（不创建非 root 用户）：root 可直接写挂载卷 /app/data，
 # 无需 entrypoint 脚本做 chown/降权。
 WORKDIR /app
-COPY --from=build /app/mintpop-api /app/mintpop-api
+COPY --from=build /app/backend/bin/server /app/mintpop-api
 COPY --from=build /app/backend/resources /app/resources
 RUN mkdir -p /app/data
 
