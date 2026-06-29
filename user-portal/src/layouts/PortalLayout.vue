@@ -89,87 +89,98 @@ onMounted(() => {
         </router-link>
       </nav>
 
-      <!-- 用户菜单 -->
-      <div class="relative ml-auto">
-        <button
-          class="flex items-center gap-2.5 rounded-full border border-border bg-card py-[5px] pl-3.5 pr-1.5 shadow-pill"
-          @click="toggleMenu"
+      <!-- 右侧：使用文档入口 + 用户菜单（二者平级） -->
+      <div class="ml-auto flex items-center gap-3">
+        <router-link
+          to="/docs"
+          class="doc-link"
+          active-class="doc-link-on"
         >
-          <span class="whitespace-nowrap text-[13px] font-medium text-mtext">{{ username }}</span>
-          <span
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-white"
-          >
-            {{ initial }}
-          </span>
-        </button>
+          {{ t('nav.docs') }}
+        </router-link>
 
-        <template v-if="menuOpen">
-          <div
-            class="fixed inset-0 z-40"
-            @click="closeMenu"
-          />
-          <div
-            class="absolute right-0 top-[54px] z-50 w-[268px] rounded-2xl border border-border bg-card p-2 shadow-menu"
+        <!-- 用户菜单 -->
+        <div class="relative">
+          <button
+            class="flex items-center gap-2.5 rounded-full border border-border bg-card py-[5px] pl-3.5 pr-1.5 shadow-pill"
+            @click="toggleMenu"
           >
-            <!-- 用户信息 -->
-            <div class="flex items-center gap-3 px-3 pb-3.5 pt-3">
-              <span
-                class="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-accent text-base font-semibold text-white"
-              >
-                {{ initial }}
-              </span>
-              <div class="min-w-0">
-                <div class="text-sm font-semibold text-text">
-                  {{ username }}
-                </div>
-                <div class="truncate text-xs text-subtle">
-                  {{ email }}
+            <span class="whitespace-nowrap text-[13px] font-medium text-mtext">{{ username }}</span>
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-white"
+            >
+              {{ initial }}
+            </span>
+          </button>
+
+          <template v-if="menuOpen">
+            <div
+              class="fixed inset-0 z-40"
+              @click="closeMenu"
+            />
+            <div
+              class="absolute right-0 top-[54px] z-50 w-[268px] rounded-2xl border border-border bg-card p-2 shadow-menu"
+            >
+              <!-- 用户信息 -->
+              <div class="flex items-center gap-3 px-3 pb-3.5 pt-3">
+                <span
+                  class="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-accent text-base font-semibold text-white"
+                >
+                  {{ initial }}
+                </span>
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-text">
+                    {{ username }}
+                  </div>
+                  <div class="truncate text-xs text-subtle">
+                    {{ email }}
+                  </div>
                 </div>
               </div>
+
+              <!-- 余额 -->
+              <div class="mx-3 mb-2 flex items-center justify-between rounded-[11px] bg-muted px-3.5 py-[11px]">
+                <span class="whitespace-nowrap text-xs font-medium text-subtle">{{ t('nav.balance') }}</span>
+                <span class="num text-[17px] font-medium text-text">${{ formatBalance(authStore.balance) }}</span>
+              </div>
+
+              <div class="mx-1.5 my-1 h-px bg-track" />
+
+              <a
+                class="mi font-semibold text-accent"
+                @click="go('/recharge')"
+              >{{ t('nav.recharge') }}<span class="text-accent">→</span></a>
+              <a
+                class="mi"
+                @click="go('/orders')"
+              >{{ t('nav.orders') }}<span>→</span></a>
+              <a
+                class="mi"
+                @click="go('/profile')"
+              >{{ t('nav.profile') }}<span>→</span></a>
+
+              <div class="mx-1.5 my-1.5 h-px bg-track" />
+
+              <a
+                class="mi text-mtext"
+                @click="themeStore.toggle()"
+              >
+                {{ isDark ? t('nav.lightMode') : t('nav.darkMode') }}<span>{{ isDark ? '☀' : '☾' }}</span>
+              </a>
+              <a
+                v-if="!localeStore.locked"
+                class="mi text-mtext"
+                @click="localeStore.toggle()"
+              >
+                {{ t('nav.language') }}<span>{{ otherLocaleLabel }} ⇄</span>
+              </a>
+              <a
+                class="mi text-neg"
+                @click="handleLogout"
+              >{{ t('nav.logout') }}<span class="text-neg">↪</span></a>
             </div>
-
-            <!-- 余额 -->
-            <div class="mx-3 mb-2 flex items-center justify-between rounded-[11px] bg-muted px-3.5 py-[11px]">
-              <span class="whitespace-nowrap text-xs font-medium text-subtle">{{ t('nav.balance') }}</span>
-              <span class="num text-[17px] font-medium text-text">${{ formatBalance(authStore.balance) }}</span>
-            </div>
-
-            <div class="mx-1.5 my-1 h-px bg-track" />
-
-            <a
-              class="mi font-semibold text-accent"
-              @click="go('/recharge')"
-            >{{ t('nav.recharge') }}<span class="text-accent">→</span></a>
-            <a
-              class="mi"
-              @click="go('/orders')"
-            >{{ t('nav.orders') }}<span>→</span></a>
-            <a
-              class="mi"
-              @click="go('/profile')"
-            >{{ t('nav.profile') }}<span>→</span></a>
-
-            <div class="mx-1.5 my-1.5 h-px bg-track" />
-
-            <a
-              class="mi text-mtext"
-              @click="themeStore.toggle()"
-            >
-              {{ isDark ? t('nav.lightMode') : t('nav.darkMode') }}<span>{{ isDark ? '☀' : '☾' }}</span>
-            </a>
-            <a
-              v-if="!localeStore.locked"
-              class="mi text-mtext"
-              @click="localeStore.toggle()"
-            >
-              {{ t('nav.language') }}<span>{{ otherLocaleLabel }} ⇄</span>
-            </a>
-            <a
-              class="mi text-neg"
-              @click="handleLogout"
-            >{{ t('nav.logout') }}<span class="text-neg">↪</span></a>
-          </div>
-        </template>
+          </template>
+        </div>
       </div>
     </header>
 
@@ -224,5 +235,22 @@ onMounted(() => {
 .mi span:last-child {
   color: #c0bcb2;
   font-size: 13px;
+}
+.doc-link {
+  font: 500 13px 'Space Grotesk', sans-serif;
+  padding: 7px 13px;
+  border-radius: 10px;
+  color: var(--text2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.doc-link:hover {
+  background: var(--muted);
+}
+.doc-link-on {
+  background: var(--card);
+  color: var(--text);
+  font-weight: 600;
 }
 </style>

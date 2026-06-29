@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { TOKEN_KEY } from '@/api/client'
 import i18n from '@/i18n'
 
-const routes: RouteRecordRaw[] = [
+export const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/dashboard' },
   {
     path: '/login',
@@ -57,6 +57,12 @@ const routes: RouteRecordRaw[] = [
     name: 'Profile',
     component: () => import('@/views/ProfileView.vue'),
     meta: { requiresAuth: true, title: 'nav.profile' }
+  },
+  {
+    path: '/docs/:slug?',
+    name: 'Docs',
+    component: () => import('@/views/DocsView.vue'),
+    meta: { requiresAuth: true, title: 'nav.docs' }
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
 ]

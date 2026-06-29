@@ -9,6 +9,7 @@ export default {
   recharge: 'Recharge',
   orders: 'My Orders',
   profile: 'Profile',
+  docs: 'Docs',
   lightMode: 'Light mode',
   darkMode: 'Dark mode',
   language: 'Language',
