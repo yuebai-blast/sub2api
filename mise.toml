@@ -121,7 +121,7 @@ run = [
 description = "user-portal 类型检查 + 单元测试（vitest）"
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = "pnpm exec vue-tsc --noEmit && pnpm exec vitest run --passWithNoTests"
+run = "pnpm exec vue-tsc --noEmit && pnpm exec vitest run"
 
 [tasks.test-e2e-local]
 description = "本地端到端测试（go test -tags=e2e ./internal/integration/...）"
