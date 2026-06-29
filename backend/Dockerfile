@@ -29,11 +29,11 @@ WORKDIR /app
 COPY mise.toml ./
 RUN mise trust && mise install go node pnpm
 
-# 依赖清单先 COPY（层缓存）
+# 依赖清单先 COPY（层缓存），安装走 mise run（命令收口到 task）
 COPY backend/go.mod backend/go.sum ./backend/
-RUN cd backend && go mod download
+RUN mise run install-backend
 COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
-RUN cd frontend && pnpm install --frozen-lockfile
+RUN mise run install-frontend
 
 # 源码后 COPY（先放后端源码，前端 build 的 outDir 写入 backend/internal/web/dist，
 # 避免被后端源码 COPY 覆盖）。LegalDocumentView.vue 需 docs/legal/*.md。

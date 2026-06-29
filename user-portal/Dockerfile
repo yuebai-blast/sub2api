@@ -18,7 +18,7 @@ COPY mise.toml ./
 RUN mise trust && mise install node pnpm
 
 COPY user-portal/package.json user-portal/pnpm-lock.yaml ./user-portal/
-RUN cd user-portal && pnpm install --frozen-lockfile
+RUN mise run install-user-portal
 COPY user-portal/ ./user-portal/
 # 发版构建：mise run build-user-portal --env prod（= vite build --mode prod，加载 .env.prod，含 VITE_PORTAL_LOCALE）
 RUN mise run build-user-portal --env prod
