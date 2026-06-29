@@ -24,6 +24,8 @@ export default defineConfig({
   // 单元测试：jsdom 环境 + 全局 API（描述/断言无需逐个 import）
   test: {
     environment: 'jsdom',
-    globals: true
+    globals: true,
+    // 修正 jsdom 默认 navigator.language=en-US 导致 i18n 单例初始化为英文的问题
+    setupFiles: ['./src/test-setup.ts']
   }
 })

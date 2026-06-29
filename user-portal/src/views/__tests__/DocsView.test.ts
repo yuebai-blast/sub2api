@@ -1,0 +1,58 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createRouter, createMemoryHistory, type Router } from 'vue-router'
+import { createPinia, setActivePinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
+import DocsView from '@/views/DocsView.vue'
+import { DOCS } from '@/docs/_manifest'
+
+function makeRouter(): Router {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/docs/:slug?', name: 'Docs', component: DocsView },
+      { path: '/', component: { template: '<div/>' } }
+    ]
+  })
+}
+
+const i18n = createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': {}, 'en-US': {} } })
+
+// stub 掉 PortalLayout：只透传默认插槽，隔离 DocsView 与布局的重依赖（auth 网络请求等）
+const PortalLayoutStub = { template: '<div><slot /></div>' }
+
+function mountDocs(router: Router) {
+  return mount(DocsView, {
+    global: {
+      plugins: [router, i18n],
+      stubs: { PortalLayout: PortalLayoutStub }
+    }
+  })
+}
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+})
+
+describe('DocsView', () => {
+  it('渲染目录项与正文 HTML', async () => {
+    const router = makeRouter()
+    router.push('/docs/quick-start')
+    await router.isReady()
+    const wrapper = mountDocs(router)
+    await flushPromises()
+    // 目录含首篇标题（localeStore 默认 zh-CN）
+    expect(wrapper.text()).toContain(DOCS[0].title['zh-CN'])
+    // 正文渲染出 markdown 的 h1
+    expect(wrapper.html()).toContain('<h1>')
+  })
+
+  it('无 slug 时回退首篇', async () => {
+    const router = makeRouter()
+    router.push('/docs')
+    await router.isReady()
+    const wrapper = mountDocs(router)
+    await flushPromises()
+    expect(wrapper.html()).toContain('<h1>')
+  })
+})
