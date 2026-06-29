@@ -24,20 +24,16 @@ function navTitle(slug: string): string {
 }
 
 const html = ref('')
-const loading = ref(false)
 
 // slug 或语言变化 → 重新加载并渲染
 watch(
   [activeSlug, () => localeStore.current],
   async ([slug, locale]) => {
-    loading.value = true
     try {
       const src = await loadDoc(slug, locale)
       html.value = renderMarkdown(src)
     } catch {
       html.value = ''
-    } finally {
-      loading.value = false
     }
   },
   { immediate: true }

@@ -1,3 +1,13 @@
+import { vi } from 'vitest'
+
+// mock @/docs/loaders：让 loadDoc 立即 resolve（微任务），保留产品懒加载，只隔离 I/O 异步。
+// DocsView 测试无需真实 fetch md 文件，但仍使用真实 renderMarkdown，确保 <h1> 断言有效。
+vi.mock('@/docs/loaders', () => ({
+  loadDoc: vi.fn().mockResolvedValue('# 快速开始'),
+  hasDoc: vi.fn().mockReturnValue(true),
+  docKey: vi.fn((slug: string, locale: string) => `./${slug}.${locale}.md`)
+}))
+
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory, type Router } from 'vue-router'
@@ -16,6 +26,8 @@ function makeRouter(): Router {
   })
 }
 
+// store 的当前语言由 test-setup.ts 的全局单例重置决定（默认 zh-CN），
+// 此处 createI18n 的 locale 仅供组件内 $t/翻译，不影响 useLocaleStore。
 const i18n = createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': {}, 'en-US': {} } })
 
 // stub 掉 PortalLayout：只透传默认插槽，隔离 DocsView 与布局的重依赖（auth 网络请求等）
