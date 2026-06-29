@@ -26,8 +26,8 @@ docker compose up -d        # 或：mise run up
 工具链与命令统一收口到 `mise`（见 `mise.toml`），常用命令：
 
 ```bash
-mise run install   # 安装全部组件依赖
-mise run build     # 编译后端单二进制（内嵌前端）
+mise run install       # 安装全部组件依赖
+mise run build-backend # 编译后端单二进制（内嵌前端）
 mise run test-backend / test-frontend / test-user-portal
 ```
 

@@ -189,7 +189,7 @@ mise 跨平台（含 Windows），不再有"Windows 没有 make"的问题。
 ```bash
 mise run test-backend    # 后端单测 + 集成测试
 mise run test-frontend   # 前端类型检查 + 关键路径 vitest
-mise run build           # 编译内嵌前端的后端单二进制
+mise run build-backend   # 编译内嵌前端的后端单二进制
 ```
 
 需要单点调试时仍可直接用底层命令（如 `cd backend && go test -tags=unit ./...`）。

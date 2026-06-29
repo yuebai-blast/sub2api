@@ -26,7 +26,7 @@ dir = "user-portal"
 run = "pnpm install --frozen-lockfile"
 
 # ---------- 构建 ----------
-[tasks.build]
+[tasks.build-backend]
 description = "编译后端单二进制（内嵌 frontend）"
 depends = ["install-frontend"]
 run = [
@@ -34,32 +34,32 @@ run = [
   "cd backend && CGO_ENABLED=0 go build -tags embed -trimpath -o bin/server ./cmd/server",
 ]
 
+[tasks.build-user-portal]
+description = "user-portal 类型检查 + 本地构建到 dist/（= build:local，纯 vite build，读 .env.local，不含发版 .env.prod；发版构建走 image-user-portal）"
+depends = ["install-user-portal"]
+dir = "user-portal"
+run = "pnpm build:local"
+
 # ---------- 本地运行 ----------
-[tasks.run]
-description = "本地运行已构建的后端单二进制（内嵌前端；需先 mise run build + backend/config.yaml + 外部 DB/Redis）"
+[tasks.run-backend]
+description = "本地运行已构建的后端单二进制（内嵌前端；需先 mise run build-backend + backend/config.yaml + 外部 DB/Redis）"
 dir = "backend"
 run = '''
 if [ ! -x bin/server ]; then
-  echo "未找到 backend/bin/server，请先执行：mise run build"
+  echo "未找到 backend/bin/server，请先执行：mise run build-backend"
   exit 1
 fi
 exec ./bin/server
 '''
 
-[tasks.user-portal]
+[tasks.run-user-portal]
 description = "启动 user-portal 开发服务器（端口 5174，/api 代理到后端）"
 depends = ["install-user-portal"]
 dir = "user-portal"
 run = "pnpm dev"
 
-[tasks.user-portal-build]
-description = "user-portal 类型检查 + 本地构建到 dist/（= build:local，纯 vite build，读 .env.local，不含发版 .env.prod；发版构建走 user-portal-image）"
-depends = ["install-user-portal"]
-dir = "user-portal"
-run = "pnpm build:local"
-
 # ---------- 代码生成 ----------
-[tasks.generate]
+[tasks.generate-backend]
 description = "重新生成 Ent ORM 与 Wire 注入代码（改 schema/wire 后必跑，生成物要提交）"
 dir = "backend"
 run = [
@@ -115,24 +115,24 @@ dir = "backend"
 run = "go test -tags=e2e -v -timeout=300s ./internal/integration/..."
 
 # ---------- 镜像 ----------
-[tasks.backend-image]
+[tasks.image-backend]
 description = "构建 backend 镜像（backend/Dockerfile，context 取仓库根）"
 run = "docker build -f backend/Dockerfile -t mintpop-api-backend:local ."
 
-[tasks.user-portal-image]
+[tasks.image-user-portal]
 description = "构建 user-portal 镜像（user-portal/Dockerfile，context 取仓库根）"
 run = "docker build -f user-portal/Dockerfile -t mintpop-api-user-portal:local ."
 
 # ---------- 发版（打 tag，收口改版本→提交→tag→推送） ----------
 # 两个发版任务统一签名（按参数形状消歧，两个位置参数均可选）：
-#   mise run <c>-release                  → 最新稳定 tag 的 patch+1，无说明
-#   mise run <c>-release "更新说明"        → patch+1，且带说明
-#   mise run <c>-release v0.4.0           → 指定版本号，无说明
-#   mise run <c>-release v0.4.0 "更新说明" → 指定版本号 + 说明
+#   mise run release-<c>                  → 最新稳定 tag 的 patch+1，无说明
+#   mise run release-<c> "更新说明"        → patch+1，且带说明
+#   mise run release-<c> v0.4.0           → 指定版本号，无说明
+#   mise run release-<c> v0.4.0 "更新说明" → 指定版本号 + 说明
 # 单参数：长得像 v?X.Y.Z(-pre) 当版本号，否则当说明；两参数则第一个必是版本号、第二个是说明。
 # 自动递增只动 patch；升 minor/major 或发预发布须显式传版本号。发版从默认分支 mintpop 切。
 
-[tasks.backend-release]
+[tasks.release-backend]
 description = "发布 backend：改版本号→提交→打 tag→推送（用法见上方注释）"
 usage = '''
 arg "[arg1]" help="版本号(v?X.Y.Z) 或 更新说明（按形状判定）"
@@ -212,7 +212,7 @@ git push origin "${TAG}"
 echo "已发布 ${TAG}：commit 与 tag 均已推送，CI 将自动构建并创建 GitHub Release"
 '''
 
-[tasks.user-portal-release]
+[tasks.release-user-portal]
 description = "发布 user-portal：改版本号→提交→打 tag→推送（用法见上方注释）"
 usage = '''
 arg "[arg1]" help="版本号(v?X.Y.Z) 或 更新说明（按形状判定）"
@@ -291,7 +291,7 @@ git push origin "${TAG}"
 echo "已发布 ${TAG}：commit 与 tag 均已推送，CI 将自动构建并创建 GitHub Release"
 '''
 
-# —— Docker Compose 部署 ——
+# ---------- Docker Compose 部署 ----------
 [tasks.up]
 description = "拉起 compose 部署（docker compose up -d，仅拉 registry 已发布镜像）"
 run = "docker compose up -d"

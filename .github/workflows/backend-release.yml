@@ -38,7 +38,7 @@ jobs:
           echo "tag 版本：${TAG_VERSION}"
           echo "文件版本：${FILE_VERSION}"
           if [ "${TAG_VERSION}" != "${FILE_VERSION}" ]; then
-            echo "::error::tag 版本(${TAG_VERSION}) 与 backend/cmd/server/VERSION(${FILE_VERSION}) 不一致；请用 'mise run backend-release ${TAG_VERSION}' 改对版本号后重新发版"
+            echo "::error::tag 版本(${TAG_VERSION}) 与 backend/cmd/server/VERSION(${FILE_VERSION}) 不一致；请用 'mise run release-backend ${TAG_VERSION}' 改对版本号后重新发版"
             exit 1
           fi
           echo "版本一致，门禁通过"

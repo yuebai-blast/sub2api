@@ -16,10 +16,10 @@ Vite + Vue3(`<script setup>`) + TypeScript + Pinia + Vue Router + Tailwind + Cha
 
 ```bash
 mise run install-user-portal   # 安装依赖
-mise run user-portal           # 启动 dev server（http://localhost:5174，/api 代理到 8080）
+mise run run-user-portal       # 启动 dev server（http://localhost:5174，/api 代理到 8080）
 ```
 
-后端地址可用环境变量覆盖：`VITE_BACKEND_ORIGIN=http://其它地址 mise run user-portal`。
+后端地址可用环境变量覆盖：`VITE_BACKEND_ORIGIN=http://其它地址 mise run run-user-portal`。
 
 打开 `http://localhost:5174`，用真实账号登录后即进入 Dashboard，各区块展示真实数据。
 
@@ -28,8 +28,8 @@ mise run user-portal           # 启动 dev server（http://localhost:5174，/ap
 | 命令 | 说明 |
 |---|---|
 | `mise run install-user-portal` | 安装/更新依赖 |
-| `mise run user-portal` | 开发服务器（端口 5174） |
-| `mise run user-portal-build` | 类型检查 + 生产构建到 `dist/` |
+| `mise run run-user-portal` | 开发服务器（端口 5174） |
+| `mise run build-user-portal` | 类型检查 + 生产构建到 `dist/` |
 | `mise run lint-user-portal` | ESLint 检查 |
 | `mise run test-user-portal` | vue-tsc 类型检查 |
 
