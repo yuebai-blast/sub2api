@@ -45,6 +45,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# pnpm audit 输出（audit-frontend 写临时文件，此处兜底防误提交）
+audit.json
+
 # ===================
 # 环境配置
 # ===================
