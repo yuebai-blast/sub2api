@@ -73,6 +73,8 @@ export interface PublicSettings {
   wechat_oauth_enabled: boolean
   site_name: string
   purchase_subscription_enabled?: boolean
+  /** 网关 API 基础地址，用于「使用密钥」配置示例 */
+  api_base_url?: string
 }
 
 // ==================== API 密钥 ====================
@@ -84,6 +86,8 @@ export interface Group {
   platform?: string
   rate_multiplier?: number
   subscription_type?: string
+  /** 是否允许 messages 透传（OpenAI 分组下决定是否展示 Claude Code 配置） */
+  allow_messages_dispatch?: boolean
 }
 
 export type GroupRates = Record<string, number>

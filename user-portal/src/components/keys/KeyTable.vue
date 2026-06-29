@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { maskApiKey, formatCost } from '@/utils/format'
 import type { ApiKey, ApiKeyUsageStat } from '@/api/types'
@@ -12,8 +13,23 @@ const emit = defineEmits<{
   edit: [key: ApiKey]
   toggle: [key: ApiKey]
   remove: [key: ApiKey]
-  copy: [key: ApiKey]
+  use: [key: ApiKey]
 }>()
+
+// 复制反馈：记录当前已复制的行 id
+const copiedId = ref<number | null>(null)
+
+async function copyKey(row: ApiKey) {
+  try {
+    await navigator.clipboard.writeText(row.key)
+    copiedId.value = row.id
+    setTimeout(() => {
+      if (copiedId.value === row.id) copiedId.value = null
+    }, 1500)
+  } catch {
+    // 忽略复制失败
+  }
+}
 
 function platformDot(platform: string | undefined): string {
   if (!platform) return 'bg-ink'
@@ -28,9 +44,10 @@ function platformDot(platform: string | undefined): string {
   <div class="overflow-hidden rounded-xl3 bg-card shadow-card">
     <!-- 表头 -->
     <div
-      class="grid grid-cols-[1.4fr_1.5fr_1fr_1.3fr_0.9fr_1.7fr] gap-4 border-b border-track px-[26px] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint"
+      class="grid grid-cols-[1fr_1.4fr_1.3fr_0.8fr_1.2fr_0.8fr_1.6fr] gap-4 border-b border-track px-[26px] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint"
     >
-      <div>{{ $t('keys.table.nameKey') }}</div>
+      <div>{{ $t('keys.table.name') }}</div>
+      <div>{{ $t('keys.table.key') }}</div>
       <div>{{ $t('keys.table.group') }}</div>
       <div>{{ $t('keys.table.status') }}</div>
       <div>{{ $t('keys.table.usage') }}</div>
@@ -44,21 +61,43 @@ function platformDot(platform: string | undefined): string {
     <div
       v-for="row in rows"
       :key="row.id"
-      class="grid grid-cols-[1.4fr_1.5fr_1fr_1.3fr_0.9fr_1.7fr] items-center gap-4 border-b border-rowline px-[26px] py-5 transition-colors hover:bg-hover"
+      class="grid grid-cols-[1fr_1.4fr_1.3fr_0.8fr_1.2fr_0.8fr_1.6fr] items-center gap-4 border-b border-rowline px-[26px] py-5 transition-colors hover:bg-hover"
       :class="row.status === 'inactive' ? 'opacity-[0.72]' : ''"
     >
-      <!-- 名称 · 密钥 -->
+      <!-- 名称 -->
+      <div class="text-sm font-semibold text-text">
+        {{ row.name }}
+      </div>
+
+      <!-- 密钥（独占一列，可复制） -->
       <div>
-        <div class="mb-[5px] text-sm font-semibold text-text">
-          {{ row.name }}
-        </div>
-        <div
-          class="inline-flex cursor-pointer items-center gap-[7px] rounded-[7px] bg-muted px-[9px] py-1 text-xs font-medium text-text3"
-          @click="emit('copy', row)"
+        <button
+          type="button"
+          class="inline-flex max-w-full cursor-pointer items-center gap-[7px] rounded-[7px] px-[9px] py-1 text-xs font-medium transition-colors"
+          :class="copiedId === row.id ? 'bg-accent/15 text-accent' : 'bg-muted text-text3 hover:text-text'"
+          :title="$t('keys.copyToClipboard')"
+          @click="copyKey(row)"
         >
-          {{ maskApiKey(row.key) }}
-          <span class="text-accent">⧉</span>
-        </div>
+          <span class="truncate font-mono">{{ maskApiKey(row.key) }}</span>
+          <svg
+            v-if="copiedId === row.id"
+            class="h-3.5 w-3.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            stroke-width="2.2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <span
+            v-else
+            class="flex-shrink-0 text-accent"
+          >⧉</span>
+        </button>
       </div>
 
       <!-- 分组 -->
@@ -105,7 +144,7 @@ function platformDot(platform: string | undefined): string {
       <div class="flex flex-wrap justify-end gap-0.5">
         <button
           class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-xs font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
-          @click="emit('copy', row)"
+          @click="emit('use', row)"
         >
           {{ $t('keys.table.use') }}
         </button>

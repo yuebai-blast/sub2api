@@ -52,6 +52,8 @@ export default {
   },
   table: {
     nameKey: '名称 · 密钥',
+    name: '名称',
+    key: '密钥',
     group: '分组',
     status: '状态',
     usage: '用量',
@@ -61,5 +63,46 @@ export default {
     last30d: '30天',
     ratePerDay: '{n}/天',
     use: '使用'
+  },
+  copyToClipboard: '复制到剪贴板',
+  copied: '已复制！',
+  useKeyModal: {
+    title: '使用 API 密钥',
+    description: '将以下环境变量添加到您的终端配置文件或直接在终端中运行。',
+    copy: '复制',
+    copied: '已复制',
+    note: '这些环境变量将在当前终端会话中生效。如需永久配置，请将其添加到 ~/.bashrc、~/.zshrc 或相应的配置文件中。',
+    noGroupTitle: '请先分配分组',
+    noGroupDescription: '此 API 密钥尚未分配分组，请先在密钥列表中编辑密钥进行分配，然后才能查看使用配置。',
+    openai: {
+      description: '将以下配置文件添加到 Codex CLI 配置目录中。',
+      configTomlHint: '请确保以下内容位于 config.toml 文件的开头部分',
+      note: '请确保配置目录存在。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录。',
+      noteWindows: '按 Win+R，输入 %userprofile%\\.codex 打开配置目录。如目录不存在，请先手动创建。'
+    },
+    cliTabs: {
+      claudeCode: 'Claude Code',
+      geminiCli: 'Gemini CLI',
+      codexCli: 'Codex CLI',
+      codexCliWs: 'Codex CLI (WebSocket)',
+      opencode: 'OpenCode'
+    },
+    antigravity: {
+      description: '为 Antigravity 分组配置 API 访问。请根据您使用的客户端选择对应的配置方式。',
+      claudeCode: 'Claude Code',
+      geminiCli: 'Gemini CLI',
+      claudeNote: '这些环境变量将在当前终端会话中生效。如需永久配置，请将其添加到 ~/.bashrc、~/.zshrc 或相应的配置文件中。',
+      geminiNote: '这些环境变量将在当前终端会话中生效。如需永久配置，请将其添加到 ~/.bashrc、~/.zshrc 或相应的配置文件中。'
+    },
+    gemini: {
+      description: '将以下环境变量添加到您的终端配置文件或直接在终端中运行，以配置 Gemini CLI 访问。',
+      modelComment: '如果你有 Gemini 3 权限可以填：gemini-3-pro-preview',
+      note: '这些环境变量将在当前终端会话中生效。如需永久配置，请将其添加到 ~/.bashrc、~/.zshrc 或相应的配置文件中。'
+    },
+    opencode: {
+      title: 'OpenCode 配置示例',
+      subtitle: 'opencode.json',
+      hint: '配置文件路径：~/.config/opencode/opencode.json（或 opencode.jsonc），不存在需手动创建。可使用默认 provider（openai/anthropic/google）或自定义 provider_id。API Key 支持直接配置或通过客户端 /connect 命令配置。示例仅供参考，模型与选项可按需调整。'
+    }
   }
 }

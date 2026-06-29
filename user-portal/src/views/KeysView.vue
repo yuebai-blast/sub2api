@@ -10,20 +10,28 @@ import Modal from '@/components/ui/Modal.vue'
 import KeyTable from '@/components/keys/KeyTable.vue'
 import CreateKeyModal from '@/components/keys/CreateKeyModal.vue'
 import EditKeyModal from '@/components/keys/EditKeyModal.vue'
+import UseKeyModal from '@/components/keys/UseKeyModal.vue'
 import { useKeys } from '@/composables/useKeys'
+import { useSettingsStore } from '@/stores/settings'
 import { formatCost } from '@/utils/format'
 import type { ApiKey, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 
 const k = useKeys()
+const settingsStore = useSettingsStore()
 const showCreate = ref(false)
 const editTarget = ref<ApiKey | null>(null)
 const removeTarget = ref<ApiKey | null>(null)
 const removing = ref(false)
+const useTarget = ref<ApiKey | null>(null)
 
 onMounted(() => {
   k.load()
   k.loadGroups()
+  settingsStore.ensureLoaded()
 })
+
+// 网关 API 基础地址（来自公开设置），用于「使用密钥」配置示例
+const apiBaseUrl = computed(() => settingsStore.settings?.api_base_url ?? '')
 
 // 统计卡片：从当前页计算（精简版，不分页汇总）
 const activeCount = computed(() => k.rows.value.filter((r) => r.status === 'active').length)
@@ -32,10 +40,6 @@ const inactiveCount = computed(() => k.rows.value.filter((r) => r.status !== 'ac
 const totalCost = computed(() => {
   return Object.values(k.usage.value).reduce((sum, s) => sum + (s.total_actual_cost ?? 0), 0)
 })
-
-function onCopy(key: ApiKey) {
-  navigator.clipboard?.writeText(key.key).catch(() => {})
-}
 
 async function doCreate(payload: CreateApiKeyRequest, done: (nk: ApiKey | null) => void) {
   try {
@@ -201,7 +205,7 @@ async function confirmRemove() {
         @edit="editTarget = $event"
         @toggle="k.toggle($event.id, $event.status === 'active' ? 'inactive' : 'active')"
         @remove="removeTarget = $event"
-        @copy="onCopy($event)"
+        @use="useTarget = $event"
       />
 
       <!-- 分页 -->
@@ -228,6 +232,16 @@ async function confirmRemove() {
       :groups="k.groups.value"
       @close="editTarget = null"
       @submit="doEdit"
+    />
+
+    <!-- 使用密钥弹窗 -->
+    <UseKeyModal
+      :open="!!useTarget"
+      :api-key="useTarget?.key ?? ''"
+      :base-url="apiBaseUrl"
+      :platform="useTarget?.group?.platform ?? null"
+      :allow-messages-dispatch="useTarget?.group?.allow_messages_dispatch ?? false"
+      @close="useTarget = null"
     />
 
     <!-- 删除确认弹窗 -->
