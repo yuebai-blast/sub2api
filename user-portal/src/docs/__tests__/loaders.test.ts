@@ -22,10 +22,9 @@ describe('loadDoc', () => {
   })
 
   it('缺失语言回退 zh-CN', async () => {
-    // 构造一个 en 不存在的场景：用一个只存在 zh 的 slug 时应回退；
-    // 这里以已存在的 quick-start 验证回退分支不报错地返回内容
-    const zh = await loadDoc('quick-start', 'zh-CN')
-    expect(zh).toContain('快速开始')
+    // fallback-probe 只有 zh-CN、没有 en-US：请求 en-US 应回退到 zh-CN
+    const result = await loadDoc('fallback-probe', 'en-US')
+    expect(result).toContain('回退探针')
   })
 
   it('完全不存在的 slug 抛错', async () => {
