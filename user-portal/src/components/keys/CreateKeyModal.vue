@@ -161,7 +161,7 @@ async function copyKey() {
           <label class="mb-1.5 block text-xs font-medium text-text2">{{ $t('keys.created.keyLabel') }}</label>
           <div class="flex items-center gap-2">
             <code
-              class="flex-1 select-all overflow-x-auto rounded-xl2 border-[1.5px] border-border2 bg-muted px-4 py-3 text-xs font-medium text-text"
+              class="flex-1 select-all overflow-x-auto whitespace-nowrap rounded-xl2 border-[1.5px] border-border2 bg-muted px-4 py-3 text-xs font-medium text-text"
             >{{ createdKey.key }}</code>
             <button
               class="shrink-0 rounded-xl2 border-[1.5px] border-border2 bg-card px-4 py-3 text-xs font-medium text-text2 transition-colors hover:border-accent hover:text-accent"
