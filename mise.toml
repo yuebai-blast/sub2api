@@ -30,15 +30,19 @@ run = "pnpm install --frozen-lockfile"
 description = "编译后端单二进制（内嵌 frontend）"
 depends = ["install-frontend"]
 run = [
-  "pnpm --dir frontend run build",
+  "pnpm --dir frontend exec vue-tsc -b",
+  "pnpm --dir frontend exec vite build",
   "cd backend && CGO_ENABLED=0 go build -tags embed -trimpath -o bin/server ./cmd/server",
 ]
 
 [tasks.build-user-portal]
-description = "user-portal 类型检查 + 本地构建到 dist/（= build:local，纯 vite build，读 .env.local，不含发版 .env.prod；发版构建走 image-user-portal）"
+description = "user-portal 类型检查 + 本地构建到 dist/（vue-tsc -b && vite build，读 .env.local，不含发版 .env.prod；发版构建走 image-user-portal）"
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = "pnpm build:local"
+run = [
+  "pnpm exec vue-tsc -b",
+  "pnpm exec vite build",
+]
 
 # ---------- 本地运行 ----------
 [tasks.run-backend]
@@ -56,7 +60,7 @@ exec ./bin/server
 description = "启动 user-portal 开发服务器（端口 5174，/api 代理到后端）"
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = "pnpm dev"
+run = "pnpm exec vite"
 
 # ---------- 代码生成 ----------
 [tasks.generate-backend]
@@ -77,13 +81,13 @@ run = "golangci-lint run ./..."
 description = "frontend ESLint 检查"
 depends = ["install-frontend"]
 dir = "frontend"
-run = "pnpm run lint:check"
+run = "pnpm exec eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts"
 
 [tasks.lint-user-portal]
 description = "user-portal ESLint 检查"
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = "pnpm run lint:check"
+run = "pnpm exec eslint . --ext .vue,.ts,.tsx"
 
 # ---------- 质量：test ----------
 [tasks.test-backend]
@@ -99,7 +103,7 @@ description = "frontend 类型检查 + 关键路径 vitest"
 depends = ["install-frontend"]
 dir = "frontend"
 run = [
-  "pnpm run typecheck",
+  "pnpm exec vue-tsc --noEmit",
   "pnpm exec vitest run src/views/auth/__tests__/LinuxDoCallbackView.spec.ts src/views/auth/__tests__/WechatCallbackView.spec.ts src/views/user/__tests__/PaymentView.spec.ts src/views/user/__tests__/PaymentResultView.spec.ts src/components/user/profile/__tests__/ProfileInfoCard.spec.ts src/views/admin/__tests__/SettingsView.spec.ts",
 ]
 
@@ -107,7 +111,7 @@ run = [
 description = "user-portal 类型检查"
 depends = ["install-user-portal"]
 dir = "user-portal"
-run = "pnpm run typecheck"
+run = "pnpm exec vue-tsc --noEmit"
 
 [tasks.test-e2e-local]
 description = "本地端到端测试（go test -tags=e2e ./internal/integration/...）"
