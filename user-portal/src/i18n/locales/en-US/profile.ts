@@ -31,6 +31,17 @@ export default {
     usernamePlaceholder: 'Username (1–50 characters)',
     updateProfile: 'Update profile'
   },
+  // Operation result toasts
+  toast: {
+    updateSuccess: 'Profile updated',
+    updateFailed: 'Failed to update profile',
+    avatarSuccess: 'Avatar updated',
+    avatarRemoved: 'Avatar removed',
+    avatarFailed: 'Failed to update avatar',
+    unbindSuccess: 'Unbound',
+    bindFailed: 'Failed to start binding',
+    unbindFailed: 'Failed to unbind'
+  },
   // Account bindings
   binding: {
     title: 'Account bindings',

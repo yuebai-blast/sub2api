@@ -1,14 +1,23 @@
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import { updateProfile } from '@/api/user'
 import { startBind, unbind as unbindApi } from '@/api/binding'
 
 export function useProfile() {
   const authStore = useAuthStore()
   const { user } = storeToRefs(authStore)
+  const toast = useToast()
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
+
+  /** 从异常中取可读信息，兜底用通用失败文案 */
+  function errMsg(e: unknown, fallback: string): string {
+    return (e as { message?: string })?.message || fallback
+  }
 
   async function load() {
     loading.value = true
@@ -20,28 +29,52 @@ export function useProfile() {
   }
 
   async function saveUsername(username: string) {
-    await updateProfile({ username })
-    await authStore.fetchUser()
+    try {
+      await updateProfile({ username })
+      await authStore.fetchUser()
+      toast.success(t('profile.toast.updateSuccess'))
+    } catch (e) {
+      toast.error(errMsg(e, t('profile.toast.updateFailed')))
+    }
   }
 
   async function saveAvatar(dataUrl: string) {
-    await updateProfile({ avatar_url: dataUrl })
-    await authStore.fetchUser()
+    try {
+      await updateProfile({ avatar_url: dataUrl })
+      await authStore.fetchUser()
+      toast.success(t('profile.toast.avatarSuccess'))
+    } catch (e) {
+      toast.error(errMsg(e, t('profile.toast.avatarFailed')))
+    }
   }
 
   async function removeAvatar() {
-    await updateProfile({ avatar_url: null })
-    await authStore.fetchUser()
+    try {
+      await updateProfile({ avatar_url: null })
+      await authStore.fetchUser()
+      toast.success(t('profile.toast.avatarRemoved'))
+    } catch (e) {
+      toast.error(errMsg(e, t('profile.toast.avatarFailed')))
+    }
   }
 
   async function bind(provider: string) {
-    const { authorize_url } = await startBind({ provider, redirect_to: window.location.origin + '/profile' })
-    window.location.href = authorize_url
+    try {
+      const { authorize_url } = await startBind({ provider, redirect_to: window.location.origin + '/profile' })
+      window.location.href = authorize_url
+    } catch (e) {
+      toast.error(errMsg(e, t('profile.toast.bindFailed')))
+    }
   }
 
   async function unbind(provider: string) {
-    await unbindApi(provider)
-    await authStore.fetchUser()
+    try {
+      await unbindApi(provider)
+      await authStore.fetchUser()
+      toast.success(t('profile.toast.unbindSuccess'))
+    } catch (e) {
+      toast.error(errMsg(e, t('profile.toast.unbindFailed')))
+    }
   }
 
   return { user, loading, error, load, saveUsername, saveAvatar, removeAvatar, bind, unbind }

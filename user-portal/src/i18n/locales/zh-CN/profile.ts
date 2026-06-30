@@ -31,6 +31,17 @@ export default {
     usernamePlaceholder: '用户名（1–50 字符）',
     updateProfile: '更新资料'
   },
+  // 操作结果提示
+  toast: {
+    updateSuccess: '资料已更新',
+    updateFailed: '资料更新失败',
+    avatarSuccess: '头像已更新',
+    avatarRemoved: '头像已删除',
+    avatarFailed: '头像更新失败',
+    unbindSuccess: '已解绑',
+    bindFailed: '发起绑定失败',
+    unbindFailed: '解绑失败'
+  },
   // 登录方式绑定
   binding: {
     title: '登录方式绑定',
