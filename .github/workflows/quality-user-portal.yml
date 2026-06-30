@@ -1,4 +1,4 @@
-name: User Portal Quality
+name: Quality User Portal
 
 on:
   workflow_call:

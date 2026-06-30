@@ -1,0 +1,16 @@
+name: CI Backend
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-quality:
+    name: Quality Backend
+    uses: ./.github/workflows/quality-backend.yml
+  frontend-quality:
+    name: Quality Frontend
+    uses: ./.github/workflows/quality-frontend.yml

@@ -72,10 +72,25 @@ fi
 exec ./bin/server
 '''
 
+[tasks.run-frontend]
+description = "启动 frontend（admin 前端）开发服务器（/api 代理到后端）"
+dir = "frontend"
+run = "pnpm exec vite"
+
 [tasks.run-user-portal]
 description = "启动 user-portal 开发服务器（端口 5174，/api 代理到后端）"
 dir = "user-portal"
 run = "pnpm exec vite"
+
+[tasks.preview-frontend]
+description = "本地预览 frontend 构建产物（vite preview，需先有 dist/）"
+dir = "frontend"
+run = "pnpm exec vite preview"
+
+[tasks.preview-user-portal]
+description = "本地预览 user-portal 构建产物（vite preview，需先有 dist/）"
+dir = "user-portal"
+run = "pnpm exec vite preview"
 
 # ---------- 代码生成 ----------
 [tasks.generate-backend]
@@ -123,6 +138,11 @@ run = [
 description = "user-portal 类型检查 + 单元测试（vitest）"
 dir = "user-portal"
 run = "pnpm exec vue-tsc --noEmit && pnpm exec vitest run"
+
+[tasks.coverage-frontend]
+description = "frontend 覆盖率测试（vitest run --coverage）"
+dir = "frontend"
+run = "pnpm exec vitest run --coverage"
 
 [tasks.test-e2e-local]
 description = "本地端到端测试（go test -tags=e2e ./internal/integration/...）"

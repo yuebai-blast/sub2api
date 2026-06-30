@@ -1,4 +1,4 @@
-name: User Portal Release
+name: Release User Portal
 
 on:
   push:
@@ -44,8 +44,8 @@ jobs:
           echo "版本一致，门禁通过"
 
   user-portal-quality:
-    name: User Portal Quality
-    uses: ./.github/workflows/user-portal-quality.yml
+    name: Quality User Portal
+    uses: ./.github/workflows/quality-user-portal.yml
 
   build-push:
     name: Build and Push

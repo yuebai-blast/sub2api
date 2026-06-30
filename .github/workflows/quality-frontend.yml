@@ -1,4 +1,4 @@
-name: Frontend Quality
+name: Quality Frontend
 
 on:
   workflow_call:
