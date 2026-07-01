@@ -3,9 +3,12 @@ import { ref, watch, computed, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Modal from '@/components/ui/Modal.vue'
 import { verifyOrder, getCheckoutInfo } from '@/api/payment'
-import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js'
+import type { Stripe, StripeElements, StripePaymentElement, StripeElementLocale } from '@stripe/stripe-js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// 内嵌 Stripe 表单的语言：跟随应用当前语言（zh-CN → zh，en-US → en），而非浏览器语言
+const stripeLocale = computed<StripeElementLocale>(() => (locale.value === 'en-US' ? 'en' : 'zh'))
 
 /**
  * 弹窗接受两类订单，统一用此类型描述：
@@ -191,6 +194,7 @@ async function initStripe(clientSecret: string) {
 
     const elements = stripe.elements({
       clientSecret,
+      locale: stripeLocale.value,
       appearance: { theme: 'stripe', variables: { borderRadius: '12px' } }
     })
     elementsInstance = elements

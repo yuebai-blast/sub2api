@@ -48,9 +48,9 @@ export default {
   securityNoteSuf: '— credited at the same amount.',
   methodWxpay: 'WeChat Pay',
   methodAlipay: 'Alipay',
-  methodStripe: 'Credit card / Stripe',
+  methodStripe: 'Stripe',
   methodScanDesc: 'Scan to pay instantly',
-  methodStripeDesc: 'Visa · Mastercard · American Express',
+  methodStripeDesc: 'Card · WeChat Pay · Alipay',
   // —— RedeemCard ——
   redeemCode: 'Redeem code',
   redeemPlaceholder: 'Enter redeem code',

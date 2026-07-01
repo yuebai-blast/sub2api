@@ -48,9 +48,9 @@ export default {
   securityNoteSuf: '安全处理，到账与额度一致。',
   methodWxpay: '微信支付',
   methodAlipay: '支付宝',
-  methodStripe: '信用卡 / Stripe',
+  methodStripe: 'Stripe',
   methodScanDesc: '扫码即时到账',
-  methodStripeDesc: 'Visa · 万事达 · 美国运通',
+  methodStripeDesc: '银行卡 · 微信支付 · 支付宝',
   // —— RedeemCard ——
   redeemCode: '兑换码',
   redeemPlaceholder: '输入兑换码',
