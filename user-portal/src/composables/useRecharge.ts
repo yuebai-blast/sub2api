@@ -4,7 +4,10 @@ import { getCheckoutInfo, createOrder, verifyOrder } from '@/api/payment'
 import { redeem as redeemApi } from '@/api/redeem'
 import type { CheckoutInfoResponse, CreateOrderResult, RedeemResult, SubscriptionPlan } from '@/api/types'
 
-const PRESETS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000]
+// 预设充值档位（精简为业界主流的少量档位，大额靠自定义输入兜底）
+const PRESETS = [10, 50, 100, 200]
+// 标记为「热门」的档位（作默认选中并高亮）
+const POPULAR = 100
 
 export function useRecharge() {
   const checkout = ref<CheckoutInfoResponse | null>(null)
@@ -64,6 +67,7 @@ export function useRecharge() {
     amount,
     method,
     presets: PRESETS,
+    popular: POPULAR,
     load,
     submitRecharge,
     submitSubscription,

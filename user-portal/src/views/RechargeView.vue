@@ -25,7 +25,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 
-const { checkout, loading, error, loaded, amount, method, presets, load, submitRecharge, submitSubscription } = useRecharge()
+const { checkout, loading, error, loaded, amount, method, presets, popular, load, submitRecharge, submitSubscription } = useRecharge()
 
 // 分 tab：0 = 充值，1 = 订阅
 const activeTab = ref<0 | 1>(0)
@@ -46,11 +46,24 @@ const successNote = ref('')
 
 // ============ 充值 tab 逻辑 ============
 
+// 实际生效的充值下限/上限（0 表示无限制）。有两重约束，都要满足：
+//   1. 全局最低/最高充值金额（min_amount/max_amount，管理端配置，下单校验以此为准）
+//   2. 当前选中支付方式的 per-instance 限额（single_min/single_max，用于路由到可用实例）
+// 故下限取两者较大者，上限取两者中「有限且较小」者。
+const activeMethodLimit = computed(() => checkout.value?.methods[method.value])
+const effectiveMin = computed(() =>
+  Math.max(checkout.value?.min_amount ?? 0, activeMethodLimit.value?.single_min ?? 0)
+)
+const effectiveMax = computed(() => {
+  const caps = [checkout.value?.max_amount ?? 0, activeMethodLimit.value?.single_max ?? 0].filter((v) => v > 0)
+  return caps.length ? Math.min(...caps) : 0
+})
+
 // 是否可提交（金额有效 + 支付方式已选 + 未在提交中）
 const canSubmit = computed(() => {
   if (!checkout.value || submitting.value) return false
-  const min = checkout.value.global_min
-  const max = checkout.value.global_max
+  const min = effectiveMin.value
+  const max = effectiveMax.value
   const a = amount.value
   if (a === null || a < min || (max > 0 && a > max)) return false
   if (!method.value) return false
@@ -298,9 +311,10 @@ onMounted(async () => {
           <AmountPicker
             v-model="amount"
             :presets="presets"
+            :popular="popular"
             :multiplier="checkout.balance_recharge_multiplier"
-            :min="checkout.global_min"
-            :max="checkout.global_max"
+            :min="effectiveMin"
+            :max="effectiveMax"
           />
 
           <PayMethodPicker

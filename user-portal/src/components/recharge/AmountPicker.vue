@@ -7,6 +7,8 @@ const { t } = useI18n()
 const props = defineProps<{
   /** 预设金额列表 */
   presets: number[]
+  /** 标记为「热门」的档位（该卡展示热门徽标） */
+  popular?: number
   /** 充值倍率（1 = 无赠送；1.1 = 赠 10%） */
   multiplier: number
   /** 最低充值额 */
@@ -105,8 +107,8 @@ const validationMsg = computed(() => {
       <span class="text-[13px] text-subtle">{{ $t('recharge.unitNote') }}</span>
     </div>
 
-    <!-- 预设金额 3 列网格 -->
-    <div class="grid grid-cols-3 gap-3">
+    <!-- 预设金额（手机 2 列 / 桌面 4 列） -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <div
         v-for="v in presets"
         :key="v"
@@ -118,6 +120,13 @@ const validationMsg = computed(() => {
         "
         @click="pickPreset(v)"
       >
+        <!-- 热门徽标 -->
+        <span
+          v-if="popular === v"
+          class="absolute -top-2 right-3 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold leading-none text-white shadow-[0_2px_6px_rgba(20,194,138,0.35)]"
+        >
+          {{ $t('recharge.popular') }}
+        </span>
         <div class="font-serif text-[26px] font-medium leading-none text-text">
           ${{ v }}
         </div>
@@ -140,7 +149,7 @@ const validationMsg = computed(() => {
       >$</span>
       <input
         class="w-full rounded-xl2 border-[1.5px] border-border2 bg-card py-[15px] pl-[38px] pr-4 text-base font-medium text-text outline-none transition-[border-color] duration-[140ms] placeholder:font-normal placeholder:text-faint focus:border-accent focus:shadow-[0_0_0_3px_rgba(20,194,138,0.13)]"
-        :placeholder="$t('recharge.amountPlaceholder', { min })"
+        :placeholder="min > 0 ? $t('recharge.amountPlaceholder', { min }) : $t('recharge.amountPlaceholderNoMin')"
         :value="customInput"
         inputmode="decimal"
         @input="onCustomInput"

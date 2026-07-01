@@ -154,10 +154,16 @@ export interface PaymentOrder {
   provider_instance_id?: string
 }
 
+/** 单个支付方式的限额（对齐后端 service.MethodLimits 的 JSON 序列化） */
 export interface MethodLimit {
-  min: number
-  max: number
+  payment_type: string
+  currency: string
   fee_rate: number
+  daily_limit: number
+  /** 单笔最低金额（0 = 无下限） */
+  single_min: number
+  /** 单笔最高金额（0 = 无上限） */
+  single_max: number
 }
 
 export interface SubscriptionPlan {
@@ -180,6 +186,10 @@ export interface SubscriptionPlan {
 
 export interface CheckoutInfoResponse {
   methods: Record<string, MethodLimit>
+  /** 全局最低/最高充值金额（管理端配置，下单校验以此为准；0 = 无上限） */
+  min_amount: number
+  max_amount: number
+  /** 各支付方式 per-instance 限额的并集范围（0 = 无限制），仅作兜底 */
   global_min: number
   global_max: number
   plans: SubscriptionPlan[]
