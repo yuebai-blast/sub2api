@@ -134,6 +134,8 @@ func (h *PaymentHandler) GetCheckoutInfo(c *gin.Context) {
 		Methods:                   limitsResp.Methods,
 		GlobalMin:                 limitsResp.GlobalMin,
 		GlobalMax:                 limitsResp.GlobalMax,
+		MinAmount:                 cfg.MinAmount,
+		MaxAmount:                 cfg.MaxAmount,
 		Plans:                     planList,
 		BalanceDisabled:           cfg.BalanceDisabled,
 		BalanceRechargeMultiplier: cfg.BalanceRechargeMultiplier,
@@ -149,6 +151,8 @@ type checkoutInfoResponse struct {
 	Methods                   map[string]service.MethodLimits `json:"methods"`
 	GlobalMin                 float64                         `json:"global_min"`
 	GlobalMax                 float64                         `json:"global_max"`
+	MinAmount                 float64                         `json:"min_amount"` // 全局最低充值金额（管理端配置，下单校验以此为准）
+	MaxAmount                 float64                         `json:"max_amount"` // 全局最高充值金额（0 = 无上限）
 	Plans                     []checkoutPlan                  `json:"plans"`
 	BalanceDisabled           bool                            `json:"balance_disabled"`
 	BalanceRechargeMultiplier float64                         `json:"balance_recharge_multiplier"`
