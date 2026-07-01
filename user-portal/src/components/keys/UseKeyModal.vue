@@ -111,6 +111,14 @@ interface FileConfig {
   highlighted?: string
 }
 
+// opencode.json 里单个 provider 条目的形状：options 必有，npm/name/models 按平台按需追加
+interface OpenCodeProvider {
+  options: { baseURL: string; apiKey: string }
+  npm?: string
+  name?: string
+  models?: Record<string, unknown>
+}
+
 const clientTabs = computed((): TabConfig[] => {
   if (!props.platform) return []
   switch (props.platform) {
@@ -436,7 +444,7 @@ goals = true`
 }
 
 function generateOpenCodeConfig(platform: string, baseUrl: string, apiKey: string, pathLabel?: string): FileConfig {
-  const provider: Record<string, any> = {
+  const provider: Record<string, OpenCodeProvider> = {
     [platform]: {
       options: {
         baseURL: baseUrl,
@@ -713,6 +721,7 @@ async function copyContent(content: string, index: number) {
                   </button>
                 </div>
                 <!-- 代码内容 -->
+                <!-- eslint-disable vue/no-v-html -- highlighted 由本组件代码拼装，动态值均经 escapeHtml 转义，无注入面 -->
                 <pre class="overflow-x-auto p-4 font-mono text-sm text-gray-100"><code
                   v-if="file.highlighted"
                   v-html="file.highlighted"
@@ -720,6 +729,7 @@ async function copyContent(content: string, index: number) {
                   v-else
                   v-text="file.content"
                 /></pre>
+                <!-- eslint-enable vue/no-v-html -->
               </div>
             </div>
           </div>

@@ -60,11 +60,13 @@ watch(
 
       <!-- 右侧正文 -->
       <article class="min-w-0 flex-1">
-        <!-- v-html 注入的是我们自有的可信文档内容（非用户输入），符合 spec「html: true」前提 -->
+        <!-- v-html 注入的是本项目自有的可信文档 markdown 渲染结果（非用户输入），故禁用该规则 -->
+        <!-- eslint-disable vue/no-v-html -->
         <div
           class="prose prose-neutral max-w-none dark:prose-invert"
           v-html="html"
         />
+        <!-- eslint-enable vue/no-v-html -->
       </article>
     </div>
   </PortalLayout>
