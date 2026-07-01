@@ -213,11 +213,16 @@ async function handleStripePay() {
   stripeSubmitting.value = true
   stripeError.value = ''
   try {
+    // redirect: 'if_required' —— 银行卡、微信（内联二维码）等无需跳转的方式在弹窗内直接完成；
+    // 需整页跳转的方式（支付宝、部分 3DS）会跳走、付完再按 return_url 跳回本页。
+    // 给 return_url 带上订单号（pay_return），跳回后由充值页据此确认订单并弹出成功提示。
+    const returnUrl = new URL(window.location.href)
+    if (props.order?.out_trade_no) {
+      returnUrl.searchParams.set('pay_return', props.order.out_trade_no)
+    }
     const { error } = await stripeInstance.confirmPayment({
       elements: elementsInstance,
-      // redirect: 'if_required' —— 银行卡等无需跳转的方式在弹窗内直接完成；
-      // 需跳转的方式（3DS 等）才用 return_url 回到当前页
-      confirmParams: { return_url: window.location.href },
+      confirmParams: { return_url: returnUrl.toString() },
       redirect: 'if_required'
     })
     if (error) {

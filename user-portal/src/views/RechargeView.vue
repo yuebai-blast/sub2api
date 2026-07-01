@@ -15,7 +15,7 @@ import Modal from '@/components/ui/Modal.vue'
 import { useRecharge } from '@/composables/useRecharge'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
-import { getPlans } from '@/api/payment'
+import { getPlans, verifyOrder } from '@/api/payment'
 import { formatBalance } from '@/utils/format'
 import type { CreateOrderResult, SubscriptionPlan } from '@/api/types'
 
@@ -152,6 +152,50 @@ async function handleSubPaid() {
   successNote.value = t('recharge.subscribeSuccess')
 }
 
+// ============ Stripe 跳转支付返回处理 ============
+
+// 支付宝等需整页跳转的 Stripe 方式付完会跳回本页（PaymentResultModal 在 return_url 上带了 pay_return=<订单号>）。
+// 跳回后此处据订单号轮询确认（后端 webhook 可能有延迟），到账后刷新余额并弹出成功提示，最后清理 URL 参数。
+function clearPayReturnQuery() {
+  const query = { ...route.query }
+  // pay_return 是我们自加的；其余是 Stripe 跳转回来自动附带的参数，一并清掉，避免刷新重复触发
+  for (const k of ['pay_return', 'payment_intent', 'payment_intent_client_secret', 'redirect_status']) {
+    delete query[k]
+  }
+  router.replace({ query, hash: route.hash })
+}
+
+// 状态集合与轮询节奏对齐主前端 PaymentResultView：
+// 成功含 RECHARGING（已付款、到账中的瞬时态）；仅在待定类状态继续轮询，其余非成功即停。
+const RESUME_SUCCESS_STATUSES = new Set(['PAID', 'RECHARGING', 'COMPLETED'])
+const RESUME_PENDING_STATUSES = new Set(['PENDING', 'CREATED', 'WAITING', 'PROCESSING'])
+const RESUME_POLL_INTERVAL_MS = 2000
+const RESUME_POLL_MAX_ATTEMPTS = 15
+
+async function resumeRedirectPayment(outTradeNo: string) {
+  // 最多轮询约 30s（15 次 × 2s），等后端收到 Stripe webhook 确认到账
+  for (let i = 0; i < RESUME_POLL_MAX_ATTEMPTS; i++) {
+    try {
+      const order = await verifyOrder(outTradeNo)
+      const status = String(order.status || '').trim().toUpperCase()
+      if (RESUME_SUCCESS_STATUSES.has(status)) {
+        await authStore.fetchUser()
+        successNote.value =
+          order.order_type === 'subscription'
+            ? t('recharge.subscribeSuccess')
+            : t('recharge.rechargeSuccess')
+        break
+      }
+      // 非待定、非成功（FAILED / CANCELLED / EXPIRED / REFUNDED 等）→ 终止，不再轮询
+      if (!RESUME_PENDING_STATUSES.has(status)) break
+    } catch {
+      // 轮询失败忽略，下次再试
+    }
+    await new Promise((resolve) => setTimeout(resolve, RESUME_POLL_INTERVAL_MS))
+  }
+  clearPayReturnQuery()
+}
+
 // ============ 生命周期 ============
 
 onMounted(async () => {
@@ -166,6 +210,11 @@ onMounted(async () => {
     activeTab.value = 0
     await nextTick()
     document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  // 从 Stripe 跳转支付（支付宝等）回来时，据订单号确认到账并弹出成功提示（不阻塞页面渲染）
+  const payReturn = route.query.pay_return
+  if (typeof payReturn === 'string' && payReturn) {
+    resumeRedirectPayment(payReturn)
   }
 })
 </script>
