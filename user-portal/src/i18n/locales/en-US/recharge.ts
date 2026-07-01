@@ -7,6 +7,7 @@ export default {
   // —— Tabs / result notes ——
   tabRecharge: 'Recharge',
   tabSubscription: 'Subscription',
+  paySuccessTitle: 'Payment successful',
   rechargeSuccess: 'Recharge successful! Your balance has been updated.',
   subscribeSuccess: 'Subscription successful! Your plan is now active.',
   // —— Account card ——
@@ -36,7 +37,6 @@ export default {
   orderDetails: 'Order summary',
   rechargeAmount: 'Recharge amount',
   bonusCredit: 'Bonus credit',
-  balanceAfter: 'Balance after',
   amountDue: 'Amount due',
   amountDueNote: 'Final amount is subject to the order result',
   stripeSecured: 'Payments secured by Stripe',

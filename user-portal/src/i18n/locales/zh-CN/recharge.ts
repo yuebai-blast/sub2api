@@ -7,6 +7,7 @@ export default {
   // —— 顶部分段 / 结果提示 ——
   tabRecharge: '充值',
   tabSubscription: '订阅',
+  paySuccessTitle: '支付成功',
   rechargeSuccess: '充值成功！余额已更新。',
   subscribeSuccess: '订阅成功！套餐已生效。',
   // —— 账户卡 ——
@@ -36,7 +37,6 @@ export default {
   orderDetails: '订单明细',
   rechargeAmount: '充值金额',
   bonusCredit: '赠送额度',
-  balanceAfter: '到账后余额',
   amountDue: '应付金额',
   amountDueNote: '实际应付以下单结果为准',
   stripeSecured: '支付由 Stripe 加密保障',

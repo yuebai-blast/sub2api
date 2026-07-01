@@ -212,14 +212,6 @@ onMounted(async () => {
     </div>
 
     <template v-else-if="loaded && checkout">
-      <!-- 成功提示 -->
-      <div
-        v-if="successNote"
-        class="mb-4 rounded-xl2 border border-pos/30 bg-pos/[0.07] px-4 py-3 text-sm font-medium text-pos"
-      >
-        {{ successNote }}
-      </div>
-
       <!-- 分段控制（充值 / 订阅） -->
       <div class="mb-6 inline-flex gap-1 rounded-full bg-track p-1">
         <button
@@ -304,7 +296,6 @@ onMounted(async () => {
           <OrderSummary
             :amount="amount"
             :multiplier="checkout.balance_recharge_multiplier"
-            :balance="authStore.balance"
             :fee-rate="checkout.recharge_fee_rate"
           >
             <template #action>
@@ -421,5 +412,43 @@ onMounted(async () => {
       @close="handlePayModalClose"
       @paid="activeTab === 0 ? handlePaid() : handleSubPaid()"
     />
+
+    <!-- 支付成功弹窗 -->
+    <Modal
+      :open="!!successNote"
+      @close="successNote = ''"
+    >
+      <div class="flex flex-col items-center text-center">
+        <!-- 成功图标 -->
+        <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-pos/[0.12] text-pos">
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        </div>
+        <h3 class="mb-2 font-serif text-xl font-medium text-text">
+          {{ $t('recharge.paySuccessTitle') }}
+        </h3>
+        <p class="text-sm text-text2">
+          {{ successNote }}
+        </p>
+      </div>
+      <template #footer>
+        <button
+          class="w-full rounded-xl2 bg-accent py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          @click="successNote = ''"
+        >
+          {{ $t('common.confirm') }}
+        </button>
+      </template>
+    </Modal>
   </PortalLayout>
 </template>

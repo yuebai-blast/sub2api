@@ -7,8 +7,6 @@ const props = defineProps<{
   amount: number | null
   /** 充值倍率（1 = 无赠送） */
   multiplier: number
-  /** 当前余额（USD） */
-  balance: number
   /** 手续费率（如 0.05 = 5%） */
   feeRate: number
 }>()
@@ -17,12 +15,6 @@ const props = defineProps<{
 const bonus = computed(() => {
   if (!props.amount || props.multiplier <= 1) return 0
   return Math.round(props.amount * (props.multiplier - 1) * 100) / 100
-})
-
-// 到账后余额
-const afterBalance = computed(() => {
-  if (!props.amount) return props.balance
-  return props.balance + props.amount + bonus.value
 })
 
 // 应付（USD，含手续费）
@@ -50,24 +42,16 @@ const hasAmount = computed(() => props.amount !== null && props.amount > 0)
       </span>
     </div>
 
-    <!-- 赠送额度 -->
-    <div class="mb-[13px] flex items-center justify-between">
+    <!-- 赠送额度（分割线上方） -->
+    <div
+      class="mb-[15px] flex items-center justify-between border-b border-dashed border-border2 pb-[15px]"
+    >
       <span class="text-sm text-text3">{{ $t('recharge.bonusCredit') }}</span>
       <span
         class="text-[15px] font-semibold"
         :class="bonus > 0 ? 'text-pos' : 'text-subtle'"
       >
         {{ bonus > 0 ? `+$${formatBalance(bonus)}` : '$0.00' }}
-      </span>
-    </div>
-
-    <!-- 到账后余额（分割线上方） -->
-    <div
-      class="mb-[15px] flex items-center justify-between border-b border-dashed border-border2 pb-[15px]"
-    >
-      <span class="text-sm text-text3">{{ $t('recharge.balanceAfter') }}</span>
-      <span class="text-[15px] font-semibold text-pos">
-        ${{ formatBalance(afterBalance) }}
       </span>
     </div>
 
