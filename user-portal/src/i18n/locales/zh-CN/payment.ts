@@ -1,7 +1,14 @@
 /** 支付结果域（PaymentResultModal） */
 export default {
   scanToPay: '扫码支付',
+  payTitle: '完成支付',
   expired: '已过期',
+  // Stripe 卡支付（Payment Element）
+  stripeHint: '请填写卡信息完成支付',
+  stripePay: '立即支付',
+  processing: '正在确认支付，请稍候…',
+  stripeLoadFailed: '支付组件加载失败，请稍后重试',
+  stripeNotConfigured: '支付尚未配置，请联系管理员',
   // 订单状态文案
   statusPending: '等待支付',
   statusPaid: '支付成功',

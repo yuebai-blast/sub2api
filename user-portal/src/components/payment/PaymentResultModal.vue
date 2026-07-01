@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Modal from '@/components/ui/Modal.vue'
-import { verifyOrder } from '@/api/payment'
+import { verifyOrder, getCheckoutInfo } from '@/api/payment'
+import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js'
 
 const { t } = useI18n()
 
 /**
  * 弹窗接受两类订单，统一用此类型描述：
- * - CreateOrderResult：刚下单返回（含 pay_url / qr_code）
+ * - CreateOrderResult：刚下单返回（含 pay_url / qr_code / client_secret）
  * - PaymentOrder：订单列表里的待支付订单（仅 out_trade_no + expires_at，无 pay_url / qr_code）
- * 弹窗只读 out_trade_no、expires_at、status、pay_url?、qr_code?，其它字段忽略。
+ * 弹窗只读 out_trade_no、expires_at、status、pay_url?、qr_code?、client_secret?，其它字段忽略。
  */
 export interface PaymentModalOrder {
   out_trade_no: string
@@ -18,6 +19,8 @@ export interface PaymentModalOrder {
   status: string
   pay_url?: string
   qr_code?: string
+  /** Stripe PaymentIntent 的 client_secret，存在时走 Stripe.js 卡支付 */
+  client_secret?: string
 }
 
 const props = defineProps<{
@@ -45,12 +48,34 @@ let pollTimer: number | null = null
 // 防止弹窗关闭后飞行中的 verify 回调仍触发 emit('paid') 或状态变更
 let aborted = false
 
+// ==================== Stripe 卡支付（Payment Element）====================
+// 复刻主前端 StripePaymentView 的做法：用 client_secret 在弹窗内挂载 Stripe Payment Element，
+// 用户填卡后 confirmPayment；成功后转入「确认中」并轮询后端订单状态直至到账。
+const stripeError = ref('')
+const stripeInitError = ref('')
+const stripeReady = ref(false)
+const stripeSubmitting = ref(false)
+const stripeProcessing = ref(false)
+const paymentElRef = ref<HTMLElement | null>(null)
+
+let stripeInstance: Stripe | null = null
+let elementsInstance: StripeElements | null = null
+let paymentElement: StripePaymentElement | null = null
+// 发布密钥缓存（结算信息里带，懒加载一次）
+let publishableKey = ''
+
+// 当前订单是否为 Stripe（存在 client_secret 即走卡支付）
+const isStripe = computed(() => !!props.order?.client_secret)
+
 // 生成 QR 码图片 URL（使用 qrserver.com 公共 API 渲染）
 const qrImageUrl = computed(() => {
   const qr = props.order?.qr_code ?? ''
   if (!qr) return ''
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qr)}`
 })
+
+// 弹窗标题：Stripe 卡支付用「完成支付」，其余用「扫码支付」
+const modalTitle = computed(() => (isStripe.value ? t('payment.payTitle') : t('payment.scanToPay')))
 
 // 倒计时格式
 const countdownLabel = computed(() => {
@@ -138,6 +163,92 @@ async function handleManualVerify() {
   }
 }
 
+// 挂载 Stripe Payment Element
+async function initStripe(clientSecret: string) {
+  stripeInitError.value = ''
+  stripeError.value = ''
+  stripeReady.value = false
+  try {
+    if (!publishableKey) {
+      const info = await getCheckoutInfo()
+      publishableKey = info.stripe_publishable_key || ''
+    }
+    if (aborted) return
+    if (!publishableKey) {
+      stripeInitError.value = t('payment.stripeNotConfigured')
+      return
+    }
+
+    const { loadStripe } = await import('@stripe/stripe-js')
+    const stripe = await loadStripe(publishableKey)
+    if (aborted) return
+    if (!stripe) {
+      stripeInitError.value = t('payment.stripeLoadFailed')
+      return
+    }
+    stripeInstance = stripe
+
+    const elements = stripe.elements({
+      clientSecret,
+      appearance: { theme: 'stripe', variables: { borderRadius: '12px' } }
+    })
+    elementsInstance = elements
+    paymentElement = elements.create('payment', { layout: 'tabs' })
+
+    // 等容器 DOM 渲染出来再 mount
+    await nextTick()
+    if (aborted || !paymentElRef.value) return
+    paymentElement.mount(paymentElRef.value)
+    paymentElement.on('ready', () => {
+      stripeReady.value = true
+    })
+  } catch {
+    if (!aborted) stripeInitError.value = t('payment.stripeLoadFailed')
+  }
+}
+
+async function handleStripePay() {
+  if (!stripeInstance || !elementsInstance || stripeSubmitting.value) return
+  stripeSubmitting.value = true
+  stripeError.value = ''
+  try {
+    const { error } = await stripeInstance.confirmPayment({
+      elements: elementsInstance,
+      // redirect: 'if_required' —— 银行卡等无需跳转的方式在弹窗内直接完成；
+      // 需跳转的方式（3DS 等）才用 return_url 回到当前页
+      confirmParams: { return_url: window.location.href },
+      redirect: 'if_required'
+    })
+    if (error) {
+      stripeError.value = error.message || t('payment.statusFailed')
+      return
+    }
+    // 卡支付已提交成功：转入「确认中」，轮询后端订单状态（等 Stripe webhook 到账）后 emit('paid')
+    stripeProcessing.value = true
+    if (props.order?.out_trade_no) startPoll(props.order.out_trade_no)
+  } catch {
+    stripeError.value = t('payment.stripeLoadFailed')
+  } finally {
+    stripeSubmitting.value = false
+  }
+}
+
+function teardownStripe() {
+  try {
+    paymentElement?.unmount()
+  } catch {
+    // 忽略卸载异常
+  }
+  paymentElement = null
+  stripeInstance = null
+  elementsInstance = null
+  stripeReady.value = false
+  stripeSubmitting.value = false
+  stripeProcessing.value = false
+  stripeError.value = ''
+  stripeInitError.value = ''
+}
+
 watch(
   () => props.open,
   (v) => {
@@ -147,8 +258,15 @@ watch(
       status.value = props.order.status || 'pending'
       errMsg.value = ''
 
+      if (props.order.client_secret) {
+        // Stripe 卡支付：弹窗内挂载 Payment Element，同时启动倒计时展示过期时间
+        startCountdown()
+        initStripe(props.order.client_secret)
+        return
+      }
+
       if (props.order.pay_url) {
-        // 跳转支付（Stripe / 支付宝 H5 等）
+        // 跳转支付（支付宝 H5 等）
         window.location.href = props.order.pay_url
         return
       }
@@ -163,6 +281,7 @@ watch(
       aborted = true
       stopPoll()
       stopCountdown()
+      teardownStripe()
     }
   }
 )
@@ -171,22 +290,91 @@ onBeforeUnmount(() => {
   aborted = true
   stopPoll()
   stopCountdown()
+  teardownStripe()
 })
 </script>
 
 <template>
   <Modal
     :open="open"
-    :title="$t('payment.scanToPay')"
+    :title="modalTitle"
     @close="emit('close')"
   >
     <div
       v-if="order"
       class="flex flex-col items-center gap-4"
     >
+      <!-- Stripe 卡支付：Payment Element -->
+      <div
+        v-if="isStripe"
+        class="w-full"
+      >
+        <!-- 加载失败 -->
+        <p
+          v-if="stripeInitError"
+          class="rounded-xl2 bg-neg/[0.08] px-4 py-3 text-center text-sm font-medium text-neg"
+        >
+          {{ stripeInitError }}
+        </p>
+
+        <template v-else-if="stripeProcessing">
+          <!-- 支付已提交，等待到账确认 -->
+          <div class="flex flex-col items-center gap-3 py-6 text-sm text-text3">
+            <span class="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+            {{ $t('payment.processing') }}
+          </div>
+        </template>
+
+        <template v-else>
+          <p class="mb-3 text-sm text-text3">
+            {{ $t('payment.stripeHint') }}
+          </p>
+          <!-- Stripe Payment Element 挂载点 -->
+          <div
+            ref="paymentElRef"
+            class="min-h-[180px]"
+          />
+          <p
+            v-if="stripeError"
+            class="mt-3 text-xs text-neg"
+          >
+            {{ stripeError }}
+          </p>
+          <button
+            class="mt-5 w-full rounded-xl2 bg-accent py-[13px] text-sm font-semibold text-white transition-[background,opacity] duration-150 hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="!stripeReady || stripeSubmitting"
+            @click="handleStripePay"
+          >
+            {{ stripeSubmitting ? $t('payment.processing') : $t('payment.stripePay') }}
+          </button>
+          <!-- 倒计时 -->
+          <div
+            v-if="order.expires_at"
+            class="mt-3 flex items-center justify-center gap-2 text-xs text-subtle"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            {{ $t('payment.qrValidity', { time: countdownLabel }) }}
+          </div>
+        </template>
+      </div>
+
       <!-- 二维码 -->
       <div
-        v-if="order.qr_code"
+        v-else-if="order.qr_code"
         class="flex flex-col items-center gap-3"
       >
         <img
@@ -229,8 +417,9 @@ onBeforeUnmount(() => {
         {{ $t('payment.redirecting') }}
       </div>
 
-      <!-- 状态 -->
+      <!-- 状态（Stripe 卡支付未提交前不展示「等待支付」冗余状态条）-->
       <div
+        v-if="!isStripe || stripeProcessing"
         class="w-full rounded-xl2 px-4 py-3 text-center text-sm font-medium"
         :class="{
           'bg-pos/[0.08] text-pos': status === 'paid' || status === 'completed',
@@ -258,6 +447,7 @@ onBeforeUnmount(() => {
         {{ $t('common.close') }}
       </button>
       <button
+        v-if="!isStripe || stripeProcessing"
         class="rounded-xl2 bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         :disabled="verifying"
         @click="handleManualVerify"

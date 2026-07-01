@@ -1,7 +1,14 @@
 /** Payment result domain (PaymentResultModal) */
 export default {
   scanToPay: 'Scan to pay',
+  payTitle: 'Complete payment',
   expired: 'Expired',
+  // Stripe card payment (Payment Element)
+  stripeHint: 'Enter your card details to pay',
+  stripePay: 'Pay now',
+  processing: 'Confirming your payment, please wait…',
+  stripeLoadFailed: 'Failed to load the payment form, please try again',
+  stripeNotConfigured: 'Payment is not configured, please contact the administrator',
   // Order status labels
   statusPending: 'Awaiting payment',
   statusPaid: 'Payment successful',
