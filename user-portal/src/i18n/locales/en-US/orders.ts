@@ -61,13 +61,13 @@ export default {
     subscription: 'Subscription'
   },
 
-  // Order status badge labels (StatusBadge)
+  // Order status badge labels (StatusBadge; keys are backend enum values in SCREAMING_SNAKE_CASE)
   status: {
-    pending: 'Pending',
-    paid: 'Paid',
-    completed: 'Completed',
-    failed: 'Failed',
-    refunded: 'Refunded'
+    PENDING: 'Pending',
+    PAID: 'Paid',
+    COMPLETED: 'Completed',
+    FAILED: 'Failed',
+    REFUNDED: 'Refunded'
   },
 
   // Payment method display labels

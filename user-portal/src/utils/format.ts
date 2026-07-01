@@ -85,12 +85,13 @@ export function formatReasoningEffort(e: string | null | undefined): string {
 
 /** 订单状态 → 展示文案 + StatusBadge variant（文案随语言切换） */
 export function orderStatusMeta(s: string): { label: string; variant: string } {
+  // key 为后端订单状态枚举取值（SCREAMING_SNAKE_CASE），value 为展示变体
   const variants: Record<string, string> = {
-    pending: 'pending',
-    paid: 'paid',
-    completed: 'paid',
-    failed: 'neg',
-    refunded: 'muted'
+    PENDING: 'pending',
+    PAID: 'paid',
+    COMPLETED: 'paid',
+    FAILED: 'neg',
+    REFUNDED: 'muted'
   }
   const variant = variants[s]
   if (!variant) return { label: s, variant: 'muted' }

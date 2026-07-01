@@ -88,12 +88,13 @@ const countdownLabel = computed(() => {
 // 状态文案
 const statusLabel = computed(() => {
   const s = status.value || props.order?.status || ''
+  // key 为后端订单状态枚举取值（SCREAMING_SNAKE_CASE）
   const map: Record<string, string> = {
-    pending: t('payment.statusPending'),
-    paid: t('payment.statusPaid'),
-    completed: t('payment.statusPaid'),
-    failed: t('payment.statusFailed'),
-    cancelled: t('payment.statusCancelled')
+    PENDING: t('payment.statusPending'),
+    PAID: t('payment.statusPaid'),
+    COMPLETED: t('payment.statusPaid'),
+    FAILED: t('payment.statusFailed'),
+    CANCELLED: t('payment.statusCancelled')
   }
   return map[s] ?? t('payment.statusPending')
 })
@@ -130,11 +131,11 @@ async function doVerify(outTradeNo: string) {
     // 弹窗已关闭或组件已卸载，丢弃本次结果
     if (aborted) return
     status.value = o.status
-    if (o.status === 'paid' || o.status === 'completed') {
+    if (o.status === 'PAID' || o.status === 'COMPLETED') {
       stopPoll()
       stopCountdown()
       emit('paid')
-    } else if (o.status === 'failed' || o.status === 'refunded') {
+    } else if (o.status === 'FAILED' || o.status === 'REFUNDED') {
       stopPoll()
       stopCountdown()
     }
@@ -255,7 +256,7 @@ watch(
     if (v && props.order) {
       // 重新打开时重置 aborted 标志，允许新一轮 verify 更新状态
       aborted = false
-      status.value = props.order.status || 'pending'
+      status.value = props.order.status || 'PENDING'
       errMsg.value = ''
 
       if (props.order.client_secret) {
@@ -422,9 +423,9 @@ onBeforeUnmount(() => {
         v-if="!isStripe || stripeProcessing"
         class="w-full rounded-xl2 px-4 py-3 text-center text-sm font-medium"
         :class="{
-          'bg-pos/[0.08] text-pos': status === 'paid' || status === 'completed',
-          'bg-neg/[0.08] text-neg': status === 'failed',
-          'bg-muted text-text3': status === 'pending' || !status
+          'bg-pos/[0.08] text-pos': status === 'PAID' || status === 'COMPLETED',
+          'bg-neg/[0.08] text-neg': status === 'FAILED',
+          'bg-muted text-text3': status === 'PENDING' || !status
         }"
       >
         {{ statusLabel }}

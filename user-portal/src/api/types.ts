@@ -130,7 +130,8 @@ export interface ApiKeyUsageStat {
 
 // ==================== 支付 / 订单 ====================
 
-export type OrderStatus = 'pending' | 'paid' | 'completed' | 'failed' | 'refunded'
+// 取值与后端 payment.OrderStatus* 保持字面一致（SCREAMING_SNAKE_CASE）
+export type OrderStatus = 'PENDING' | 'PAID' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
 
 export interface PaymentOrder {
   id: number

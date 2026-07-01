@@ -61,13 +61,13 @@ export default {
     subscription: '订阅'
   },
 
-  // 订单状态徽章文案（StatusBadge）
+  // 订单状态徽章文案（StatusBadge；key 为后端枚举取值 SCREAMING_SNAKE_CASE）
   status: {
-    pending: '待支付',
-    paid: '已支付',
-    completed: '已完成',
-    failed: '失败',
-    refunded: '已退款'
+    PENDING: '待支付',
+    PAID: '已支付',
+    COMPLETED: '已完成',
+    FAILED: '失败',
+    REFUNDED: '已退款'
   },
 
   // 支付方式展示文案

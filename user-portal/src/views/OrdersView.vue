@@ -24,10 +24,10 @@ const { rows, total, page, pageSize, statusFilter, search, loading, error, loade
 // 状态 chip 标签（value 为后端枚举值，保持不变）
 const tabs = computed(() => [
   { label: t('orders.tabs.all'), value: '' },
-  { label: t('orders.tabs.pending'), value: 'pending' },
-  { label: t('orders.tabs.paid'), value: 'paid' },
-  { label: t('orders.tabs.completed'), value: 'completed' },
-  { label: t('orders.tabs.refunded'), value: 'refunded' },
+  { label: t('orders.tabs.pending'), value: 'PENDING' },
+  { label: t('orders.tabs.paid'), value: 'PAID' },
+  { label: t('orders.tabs.completed'), value: 'COMPLETED' },
+  { label: t('orders.tabs.refunded'), value: 'REFUNDED' },
 ])
 
 // 切换 tab 时重置分页
@@ -45,12 +45,12 @@ const filteredRows = computed(() => {
 })
 
 // === StatCard 派生数据 ===
-const paidCount = computed(() => rows.value.filter(r => r.status === 'paid' || r.status === 'completed').length)
-const pendingCount = computed(() => rows.value.filter(r => r.status === 'pending').length)
+const paidCount = computed(() => rows.value.filter(r => r.status === 'PAID' || r.status === 'COMPLETED').length)
+const pendingCount = computed(() => rows.value.filter(r => r.status === 'PENDING').length)
 
 const totalRecharge = computed(() => {
   return rows.value
-    .filter(r => r.status === 'completed')
+    .filter(r => r.status === 'COMPLETED')
     .reduce((sum, r) => sum + r.amount, 0)
 })
 

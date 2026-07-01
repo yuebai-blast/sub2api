@@ -115,21 +115,21 @@ function orderKind(orderType: string): string {
         {{ $t('orders.actions.view') }}
       </button>
       <button
-        v-if="row.status === 'pending'"
+        v-if="row.status === 'PENDING'"
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-accent transition-colors hover:bg-muted"
         @click="emit('pay', row)"
       >
         {{ $t('orders.actions.payNow') }}
       </button>
       <button
-        v-if="row.status === 'pending'"
+        v-if="row.status === 'PENDING'"
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-text3 transition-colors hover:bg-muted hover:text-text"
         @click="emit('cancel', row)"
       >
         {{ $t('common.cancel') }}
       </button>
       <button
-        v-if="row.status === 'failed' || row.status === 'refunded'"
+        v-if="row.status === 'FAILED' || row.status === 'REFUNDED'"
         class="inline-flex cursor-pointer items-center gap-[5px] rounded-lg px-[9px] py-[6px] text-[12px] font-medium text-accent transition-colors hover:bg-muted"
         @click="emit('reorder', row)"
       >
