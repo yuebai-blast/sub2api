@@ -333,7 +333,19 @@ async function onSubmit() {
               type="checkbox"
               class="mt-0.5 h-[17px] w-[17px] flex-none rounded-[5px] accent-accent"
             >
-            <span>{{ t('auth.agreePrefix') }} <span class="font-semibold text-text">{{ t('auth.termsOfService') }}</span> {{ t('auth.and') }} <span class="font-semibold text-text">{{ t('auth.privacyPolicy') }}</span></span>
+            <span>{{ t('auth.agreePrefix') }} <router-link
+              to="/legal#agreement"
+              target="_blank"
+              rel="noopener"
+              class="font-semibold text-text underline-offset-2 hover:underline"
+              @click.stop
+            >{{ t('auth.termsOfService') }}</router-link> {{ t('auth.and') }} <router-link
+              to="/legal#privacy"
+              target="_blank"
+              rel="noopener"
+              class="font-semibold text-text underline-offset-2 hover:underline"
+              @click.stop
+            >{{ t('auth.privacyPolicy') }}</router-link></span>
           </label>
 
           <p

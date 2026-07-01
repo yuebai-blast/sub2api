@@ -17,6 +17,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false, title: 'nav.register' }
   },
   {
+    path: '/legal',
+    name: 'Legal',
+    component: () => import('@/views/LegalView.vue'),
+    meta: { requiresAuth: false, title: 'legal.title' }
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('@/views/DashboardView.vue'),
@@ -70,7 +76,8 @@ export const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior: () => ({ top: 0 })
+  // 带 hash 时滚到对应锚点（留出顶栏高度偏移），否则回到顶部
+  scrollBehavior: (to) => (to.hash ? { el: to.hash, top: 96 } : { top: 0 })
 })
 
 router.beforeEach((to) => {
